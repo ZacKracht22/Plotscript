@@ -12,6 +12,9 @@ TEST_CASE( "Test default constructor", "[environment]" ) {
   REQUIRE(env.is_known(Atom("pi")));
   REQUIRE(env.is_exp(Atom("pi")));
 
+  REQUIRE(env.is_known(Atom("e")));
+  REQUIRE(env.is_exp(Atom("e")));
+
   REQUIRE(!env.is_known(Atom("hi")));
   REQUIRE(!env.is_exp(Atom("hi")));
 
@@ -19,6 +22,7 @@ TEST_CASE( "Test default constructor", "[environment]" ) {
   REQUIRE(env.is_proc(Atom("-")));
   REQUIRE(env.is_proc(Atom("*")));
   REQUIRE(env.is_proc(Atom("/")));
+  REQUIRE(env.is_proc(Atom("sqrt")));
   REQUIRE(!env.is_proc(Atom("op")));
 }
 

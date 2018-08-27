@@ -122,6 +122,96 @@ Expression sqrt(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+Expression pow(const std::vector<Expression> & args) {
+
+	double result = 0;
+
+	if (nargs_equal(args, 2)) {
+		if ((args[0].isHeadNumber()) && (args[1].isHeadNumber())) {
+			result = std::pow(args[0].head().asNumber(), args[1].head().asNumber());
+		}
+		else {
+			throw SemanticError("Error in call to pow: invalid argument.");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to pow: invalid number of arguments.");
+	}
+	return Expression(result);
+};
+
+Expression ln(const std::vector<Expression> & args) {
+
+	double result = 0;
+
+	if (nargs_equal(args, 1)) {
+		if ((args[0].isHeadNumber()) && args[0].head().asNumber() > 0) {
+			result = log(args[0].head().asNumber());
+		}
+		else {
+			throw SemanticError("Error in call to ln: invalid argument.");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to ln: invalid number of arguments.");
+	}
+	return Expression(result);
+};
+
+Expression sin(const std::vector<Expression> & args) {
+
+	double result = 0;
+
+	if (nargs_equal(args, 1)) {
+		if ((args[0].isHeadNumber())) {
+			result = sin(args[0].head().asNumber());
+		}
+		else {
+			throw SemanticError("Error in call to sin: invalid argument.");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to sin: invalid number of arguments.");
+	}
+	return Expression(result);
+};
+
+Expression cos(const std::vector<Expression> & args) {
+
+	double result = 0;
+
+	if (nargs_equal(args, 1)) {
+		if ((args[0].isHeadNumber())) {
+			result = cos(args[0].head().asNumber());
+		}
+		else {
+			throw SemanticError("Error in call to cos: invalid argument.");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to cos: invalid number of arguments.");
+	}
+	return Expression(result);
+};
+
+Expression tan(const std::vector<Expression> & args) {
+
+	double result = 0;
+
+	if (nargs_equal(args, 1)) {
+		if ((args[0].isHeadNumber())) {
+			result = tan(args[0].head().asNumber());
+		}
+		else {
+			throw SemanticError("Error in call to tan: invalid argument.");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to tan: invalid number of arguments.");
+	}
+	return Expression(result);
+};
+
 
 Environment::Environment(){
 
@@ -221,4 +311,19 @@ void Environment::reset(){
 
   // Procedure: sqrt;
   envmap.emplace("sqrt", EnvResult(ProcedureType, sqrt));
+
+  // Procedure: pow;
+  envmap.emplace("^", EnvResult(ProcedureType, pow));
+
+  // Procedure: ln;
+  envmap.emplace("ln", EnvResult(ProcedureType, ln));
+
+  // Procedure: sin;
+  envmap.emplace("sin", EnvResult(ProcedureType, sin));
+
+  // Procedure: cos;
+  envmap.emplace("cos", EnvResult(ProcedureType, cos));
+
+  // Procedure: tan;
+  envmap.emplace("tan", EnvResult(ProcedureType, tan));
 }

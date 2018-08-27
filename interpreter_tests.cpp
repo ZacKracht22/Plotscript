@@ -322,3 +322,127 @@ TEST_CASE( "Test using number as procedure", "[interpreter]" ) {
   
   REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
 }
+
+TEST_CASE("Sqrt tests", "[interpreter]") {
+
+	{
+		std::string program = "(sqrt 9)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(3.));
+	}
+
+	{
+		std::string program = "(sqrt 36)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(6.));
+	}
+
+}
+
+TEST_CASE("Pow tests", "[interpreter]") {
+
+	{
+		std::string program = "(^ 3 2)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(9.));
+	}
+
+	{
+		std::string program = "(^ 9 0.5)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(3.));
+	}
+
+	{
+		std::string program = "(^ 5 0)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+	{
+		std::string program = "(^ 2 -2)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.25));
+	}
+
+}
+
+
+TEST_CASE("ln tests", "[interpreter]") {
+
+	{
+		std::string program = "(ln 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.));
+	}
+
+	{
+		std::string program = "(ln 5)";
+		INFO(program);
+		Expression result = run(program);
+		double expected = log(5);
+		REQUIRE(result == Expression(expected));
+	}
+
+}
+
+TEST_CASE("sin tests", "[interpreter]") {
+
+	{
+		std::string program = "(sin 0)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.));
+	}
+
+	{
+		std::string program = "(sin (/ pi 2))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+}
+
+TEST_CASE("cos tests", "[interpreter]") {
+
+	{
+		std::string program = "(cos 0)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+	{
+		std::string program = "(cos (/ pi 2))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.));
+	}
+
+}
+
+TEST_CASE("tan tests", "[interpreter]") {
+
+	{
+		std::string program = "(tan (/ pi 4))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+	{
+		std::string program = "(tan 0)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.));
+	}
+
+}
