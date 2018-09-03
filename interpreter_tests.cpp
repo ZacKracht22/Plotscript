@@ -4,6 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <complex>
 
 #include "semantic_error.hpp"
 #include "interpreter.hpp"
@@ -443,6 +444,69 @@ TEST_CASE("tan tests", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		REQUIRE(result == Expression(0.));
+	}
+
+}
+
+TEST_CASE("complex add tests", "[interpreter]") {
+
+	{
+		std::string program = "(+ I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0,2.0)));
+	}
+
+	{
+		std::string program = "(+ I I I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 4.0)));
+	}
+
+	{
+		std::string program = "(+ I 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(1.0, 1.0)));
+	}
+
+	{
+		std::string program = "(+ 2 I 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(3.0, 1.0)));
+	}
+}
+
+TEST_CASE("complex sub/neg tests", "[interpreter]") {
+
+	{
+		std::string program = "(- I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 0.0)));
+	}
+
+	{
+		std::string program = "(- I 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(-1.0, 1.0)));
+	}
+
+	{
+		std::string program = "(- 1 I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(1.0, -1.0)));
+	}
+
+	{
+		std::string program = "(- I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, -1.0)));
 	}
 
 }

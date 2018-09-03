@@ -4,12 +4,18 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <complex>
 
 Atom::Atom(): m_type(NoneKind) {}
 
 Atom::Atom(double value){
 
   setNumber(value);
+}
+
+Atom::Atom(const std::complex<double> & value) {
+
+	setComplex(value);
 }
 
 Atom::Atom(const Token & token): Atom(){
@@ -43,6 +49,9 @@ Atom::Atom(const Atom & x): Atom(){
   else if(x.isSymbol()){
     setSymbol(x.stringValue);
   }
+  else if (x.isComplex()) {
+	  setComplex(x.complexValue);
+  }
 }
 
 Atom & Atom::operator=(const Atom & x){
@@ -57,6 +66,9 @@ Atom & Atom::operator=(const Atom & x){
     else if(x.m_type == SymbolKind){
       setSymbol(x.stringValue);
     }
+	else if (x.m_type == ComplexKind) {
+	  setComplex(x.complexValue);
+	}
   }
   return *this;
 }
@@ -81,11 +93,21 @@ bool Atom::isSymbol() const noexcept{
   return m_type == SymbolKind;
 }  
 
+bool Atom::isComplex() const noexcept {
+	return m_type == ComplexKind;
+}
+
 
 void Atom::setNumber(double value){
 
   m_type = NumberKind;
   numberValue = value;
+}
+
+void Atom::setComplex(const std::complex<double> & value) {
+
+	m_type = ComplexKind;
+	complexValue = value;
 }
 
 void Atom::setSymbol(const std::string & value){
@@ -106,6 +128,10 @@ double Atom::asNumber() const noexcept{
   return (m_type == NumberKind) ? numberValue : 0.0;  
 }
 
+std::complex<double> Atom::asComplex() const noexcept {
+
+	return (m_type == ComplexKind) ? complexValue : std::complex<double>(0.0,0.0);
+}
 
 std::string Atom::asSymbol() const noexcept{
 
@@ -143,6 +169,12 @@ bool Atom::operator==(const Atom & right) const noexcept{
       return stringValue == right.stringValue;
     }
     break;
+  case ComplexKind:
+	{
+	  if (right.m_type != ComplexKind) return false;
+	  return complexValue == right.complexValue;
+	}
+	break;
   default:
     return false;
   }
@@ -163,6 +195,9 @@ std::ostream & operator<<(std::ostream & out, const Atom & a){
   }
   if(a.isSymbol()){
     out << a.asSymbol();
+  }
+  if (a.isComplex()) {
+	  out << a.asComplex();
   }
   return out;
 }

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <complex>
 
 #include "environment.hpp"
 #include "semantic_error.hpp"
@@ -29,23 +30,40 @@ Expression default_proc(const std::vector<Expression> & args){
 Expression add(const std::vector<Expression> & args){
 
   // check all aruments are numbers, while adding
-  double result = 0;
+  double realResult = 0;
+  std::complex<double> complexResult(0.0,0.0);
+  bool complexFlag = false;
+
+  for (auto & z : args){
+	  if (z.isHeadComplex()){
+		  complexFlag = true;
+	  }
+  }
+
   for( auto & a :args){
-    if(a.isHeadNumber()){
-      result += a.head().asNumber();      
+    if(a.isHeadNumber() && !complexFlag){
+      realResult += a.head().asNumber();  
     }
+	else if (a.isHeadNumber() && complexFlag) {
+		complexResult += a.head().asNumber();
+	}
+	else if (a.isHeadComplex()) {
+		complexResult += a.head().asComplex();
+	}
     else{
       throw SemanticError("Error in call to add, argument not a number");
     }
   }
 
-  return Expression(result);
+  return (complexFlag ? Expression(complexResult) : Expression(realResult));
+
 };
 
 Expression mul(const std::vector<Expression> & args){
  
   // check all aruments are numbers, while multiplying
   double result = 1;
+
   for( auto & a :args){
     if(a.isHeadNumber()){
       result *= a.head().asNumber();      
@@ -60,21 +78,43 @@ Expression mul(const std::vector<Expression> & args){
 
 Expression subneg(const std::vector<Expression> & args){
 
-  double result = 0;
+  double realResult = 0;
+  std::complex<double> complexResult(0.0, 0.0);
+  bool complexFlag = false;
+
+  for (auto & z : args) {
+	  if (z.isHeadComplex()) {
+		  complexFlag = true;
+	  }
+  }
 
   // preconditions
   if(nargs_equal(args,1)){
     if(args[0].isHeadNumber()){
-      result = -args[0].head().asNumber();
+      realResult = -args[0].head().asNumber();
     }
+	else if (args[0].isHeadComplex()) {
+		complexResult = -args[0].head().asComplex();
+	}
     else{
       throw SemanticError("Error in call to negate: invalid argument.");
     }
   }
   else if(nargs_equal(args,2)){
     if( (args[0].isHeadNumber()) && (args[1].isHeadNumber()) ){
-      result = args[0].head().asNumber() - args[1].head().asNumber();
+      realResult = args[0].head().asNumber() - args[1].head().asNumber();
     }
+	else if ((args[0].isHeadNumber()) && (args[1].isHeadComplex())) {
+		complexResult.real(args[0].head().asNumber() - args[1].head().asComplex().real());
+		complexResult.imag(complexResult.imag() - args[1].head().asComplex().imag());
+	}
+	else if ((args[0].isHeadComplex()) && (args[1].isHeadNumber())) {
+		complexResult.real(args[0].head().asComplex().real() - args[1].head().asNumber());
+		complexResult.imag(args[0].head().asComplex().imag());
+	}
+	else if ((args[0].isHeadComplex()) && (args[1].isHeadComplex())) {
+		complexResult = args[0].head().asComplex() - args[1].head().asComplex();
+	}
     else{      
       throw SemanticError("Error in call to subtraction: invalid argument.");
     }
@@ -83,7 +123,7 @@ Expression subneg(const std::vector<Expression> & args){
     throw SemanticError("Error in call to subtraction or negation: invalid number of arguments.");
   }
 
-  return Expression(result);
+  return (complexFlag ? Expression(complexResult) : Expression(realResult));
 };
 
 Expression div(const std::vector<Expression> & args){
@@ -282,6 +322,7 @@ Procedure Environment::get_proc(const Atom & sym) const{
 
 const double PI = std::atan2(0, -1);
 const double EXP = std::exp(1);
+const std::complex<double> I(0.0, 1.0);
 
 /*
 Reset the environment to the default state. First remove all entries and
@@ -296,6 +337,9 @@ void Environment::reset(){
 
   // Built-In value of euler's number
   envmap.emplace("e", EnvResult(ExpressionType, Expression(EXP)));
+
+  // Built-In value of euler's number
+  envmap.emplace("I", EnvResult(ExpressionType, Expression(I)));
 
   // Procedure: add;
   envmap.emplace("+", EnvResult(ProcedureType, add)); 
