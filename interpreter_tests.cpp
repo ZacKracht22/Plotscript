@@ -340,6 +340,22 @@ TEST_CASE("Sqrt tests", "[interpreter]") {
 		REQUIRE(result == Expression(6.));
 	}
 
+	{
+		std::string program = "(sqrt (- 1))";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected(0.0,1.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(sqrt I)";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected = sqrt(std::complex<double>(0.0,1.0));
+		REQUIRE(result == Expression(expected));
+	}
+
 }
 
 TEST_CASE("Pow tests", "[interpreter]") {
@@ -370,6 +386,32 @@ TEST_CASE("Pow tests", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		REQUIRE(result == Expression(0.25));
+	}
+
+	{
+		std::string program = "(^ I I)";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> I(0.0,1.0);
+		std::complex<double> expected = std::pow(I,I);
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(^ 1 I)";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected(1.0,0.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(^ I 2)";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> I(0.0, 1.0);
+		std::complex<double> expected = std::pow(I, 2.0);
+		REQUIRE(result == Expression(expected));
 	}
 
 }
@@ -550,3 +592,158 @@ TEST_CASE("complex multiply tests", "[interpreter]") {
 
 
 }
+
+TEST_CASE("complex division tests", "[interpreter]") {
+
+	{
+		std::string program = "(/ I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(1.0, 0.0)));
+	}
+
+	{
+		std::string program = "(/ I 2)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 0.5)));
+	}
+
+	{
+		std::string program = "(/ 2 I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, -2.0)));
+	}
+
+	{
+		std::string program = "(/ 2 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(2.));
+	}
+
+}
+
+TEST_CASE("complex real tests", "[interpreter]") {
+
+	{
+		std::string program = "(real I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.));
+	}
+
+	{
+		std::string program = "(real (+ I 3))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(3.));
+	}
+
+	{
+		std::string program = "(real (- I 3))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(-3.));
+	}
+
+}
+
+TEST_CASE("complex imag tests", "[interpreter]") {
+
+	{
+		std::string program = "(imag I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+	{
+		std::string program = "(imag (+ I I))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(2.));
+	}
+
+	{
+		std::string program = "(imag (- (- I I) I))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(-1.));
+	}
+
+}
+
+TEST_CASE("complex mag tests", "[interpreter]") {
+
+	{
+		std::string program = "(mag I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(1.));
+	}
+
+	{
+		std::string program = "(mag (+ 1 I))";
+		INFO(program);
+		Expression result = run(program);
+		double expected = sqrt(2);
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(mag (+ 2 I))";
+		INFO(program);
+		Expression result = run(program);
+		double expected = sqrt(5);
+		REQUIRE(result == Expression(expected));
+	}
+	{
+		std::string program = "(mag (+ I I))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(2.));
+	}
+}
+
+TEST_CASE("complex arg tests", "[interpreter]") {
+
+	{
+		std::string program = "(arg I)";
+		INFO(program);
+		Expression result = run(program);
+		double expected = std::atan2(0, -1) / 2;
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(arg (+ 1 I))";
+		INFO(program);
+		Expression result = run(program);
+		double expected = std::atan2(0, -1) / 4;
+		REQUIRE(result == Expression(expected));
+	}
+
+}
+
+TEST_CASE("complex conj tests", "[interpreter]") {
+
+	{
+		std::string program = "(conj I)";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected(0.0,-1.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(conj (+ 1 I))";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected(1.0, -1.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+}
+
