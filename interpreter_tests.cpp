@@ -510,3 +510,43 @@ TEST_CASE("complex sub/neg tests", "[interpreter]") {
 	}
 
 }
+
+TEST_CASE("complex multiply tests", "[interpreter]") {
+
+	{
+		std::string program = "(* I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(-1.0, 0.0)));
+	}
+
+	{
+		std::string program = "(* I 0)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 0.0)));
+	}
+
+	{
+		std::string program = "(* I 1)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 1.0)));
+	}
+
+	{
+		std::string program = "(* 1 I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, 1.0)));
+	}
+
+	{
+		std::string program = "(* I I I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0, -1.0)));
+	}
+
+
+}

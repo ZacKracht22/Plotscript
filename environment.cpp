@@ -62,18 +62,32 @@ Expression add(const std::vector<Expression> & args){
 Expression mul(const std::vector<Expression> & args){
  
   // check all aruments are numbers, while multiplying
-  double result = 1;
+	double realResult = 1;
+	std::complex<double> complexResult(1.0, 0.0);
+	bool complexFlag = false;
 
-  for( auto & a :args){
-    if(a.isHeadNumber()){
-      result *= a.head().asNumber();      
-    }
-    else{
-      throw SemanticError("Error in call to mul, argument not a number");
-    }
-  }
+	for (auto & z : args) {
+		if (z.isHeadComplex()) {
+			complexFlag = true;
+		}
+	}
 
-  return Expression(result);
+	for (auto & a : args) {
+		if (a.isHeadNumber() && !complexFlag) {
+			realResult *= a.head().asNumber();
+		}
+		else if (a.isHeadNumber() && complexFlag) {
+			complexResult *= a.head().asNumber();
+		}
+		else if (a.isHeadComplex()) {
+			complexResult *= a.head().asComplex();
+		}
+		else {
+			throw SemanticError("Error in call to add, argument not a number");
+		}
+	}
+
+	return (complexFlag ? Expression(complexResult) : Expression(realResult));
 };
 
 Expression subneg(const std::vector<Expression> & args){
