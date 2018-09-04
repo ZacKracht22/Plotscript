@@ -27,13 +27,15 @@ Expression default_proc(const std::vector<Expression> & args){
   return Expression();
 };
 
+
 Expression add(const std::vector<Expression> & args){
 
   // check all aruments are numbers, while adding
   double realResult = 0;
   std::complex<double> complexResult(0.0,0.0);
-  bool complexFlag = false;
+  bool complexFlag = false; //Flag used to check if one of the arguments is a complex number
 
+  //Check each element for a complex number
   for (auto & z : args){
 	  if (z.isHeadComplex()){
 		  complexFlag = true;
@@ -41,9 +43,11 @@ Expression add(const std::vector<Expression> & args){
   }
 
   for( auto & a :args){
+	  //If the argument is a number and no complex numbers are in the arguments, add it as a normal number
     if(a.isHeadNumber() && !complexFlag){
       realResult += a.head().asNumber();  
     }
+	//If the arg is a number but complex numbers are in the arguments, add it to a complex result
 	else if (a.isHeadNumber() && complexFlag) {
 		complexResult += a.head().asNumber();
 	}
@@ -55,6 +59,7 @@ Expression add(const std::vector<Expression> & args){
     }
   }
 
+  //Return a complex number if there was at  least one complex value
   return (complexFlag ? Expression(complexResult) : Expression(realResult));
 
 };
@@ -66,12 +71,14 @@ Expression mul(const std::vector<Expression> & args){
 	std::complex<double> complexResult(1.0, 0.0);
 	bool complexFlag = false;
 
+	//Check for a complex value in the arguments
 	for (auto & z : args) {
 		if (z.isHeadComplex()) {
 			complexFlag = true;
 		}
 	}
 
+	//Same logic from add method, if a complex value is present in the list, add all the arguments as complex
 	for (auto & a : args) {
 		if (a.isHeadNumber() && !complexFlag) {
 			realResult *= a.head().asNumber();
@@ -96,7 +103,7 @@ Expression subneg(const std::vector<Expression> & args){
   std::complex<double> complexResult(0.0, 0.0);
   bool complexFlag = false;
 
-  // preconditions
+  // If there is one argument, negate it
   if(nargs_equal(args,1)){
     if(args[0].isHeadNumber()){
       realResult = -args[0].head().asNumber();
@@ -109,6 +116,7 @@ Expression subneg(const std::vector<Expression> & args){
       throw SemanticError("Error in call to negate: invalid argument.");
     }
   }
+  //If there are two arguments, subtract them. If at least on is complex, the answer is complex
   else if(nargs_equal(args,2)){
     if( (args[0].isHeadNumber()) && (args[1].isHeadNumber()) ){
       realResult = args[0].head().asNumber() - args[1].head().asNumber();
@@ -144,10 +152,13 @@ Expression div(const std::vector<Expression> & args){
   std::complex<double> complexResult(0.0, 0.0);
   bool complexFlag = false;
 
+  //Check for only two arguments
   if(nargs_equal(args,2)){
+	  //If both args are numbers, divide as normal numbers and return non-complex
     if( (args[0].isHeadNumber()) && (args[1].isHeadNumber()) ){
       realResult = args[0].head().asNumber() / args[1].head().asNumber();
     }
+	//If one of the arguments are complex, or both, return as complex
 	else if ((args[0].isHeadComplex()) && (args[1].isHeadNumber())) {
 		complexResult = args[0].head().asComplex() / args[1].head().asNumber();
 		complexFlag = true;
@@ -176,14 +187,18 @@ Expression sqrt(const std::vector<Expression> & args) {
 	std::complex<double> complexResult(0.0,0.0);
 	bool complexFlag = false;
 
+	//Make sure there is just one arguments
 	if (nargs_equal(args, 1)) {
+		//If the argument is a positive number, return the sqrt as a double
 		if ((args[0].isHeadNumber()) && args[0].head().asNumber() >= 0) {
 			realResult = sqrt(args[0].head().asNumber());
 		}
+		//If the argument is a negative number, return the sqrt as complex
 		else if (args[0].isHeadNumber() && args[0].head().asNumber() < 0) {
 			complexResult.imag(sqrt(-args[0].head().asNumber()));
 			complexFlag = true;
 		}
+		//If the arg is complex, return the sqrt as complex
 		else if (args[0].isHeadComplex()) {
 			complexResult = sqrt(args[0].head().asComplex());
 			complexFlag = true;
@@ -198,6 +213,9 @@ Expression sqrt(const std::vector<Expression> & args) {
 	return (complexFlag ? Expression(complexResult) : Expression(realResult));
 };
 
+/*Function that takes the first argument to the power of the second.
+  If one argument or both are complex, return it as complex.
+  */
 Expression pow(const std::vector<Expression> & args) {
 
 	double realResult = 0;
@@ -230,6 +248,9 @@ Expression pow(const std::vector<Expression> & args) {
 	return (complexFlag ? Expression(complexResult) : Expression(realResult));
 };
 
+/*Function that returns the natural log of an argument.
+  Throws an error for invalid number of arguments or an arg less than or equal to 0
+  */
 Expression ln(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -248,6 +269,8 @@ Expression ln(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the sin of a real number
+*/
 Expression sin(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -266,6 +289,8 @@ Expression sin(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the cos of a real number
+*/
 Expression cos(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -284,6 +309,8 @@ Expression cos(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the tan of a real number
+*/
 Expression tan(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -302,6 +329,7 @@ Expression tan(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the real part of a complex number*/
 Expression real(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -320,6 +348,7 @@ Expression real(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the imaginary part of a complex number*/
 Expression imag(const std::vector<Expression> & args) {
 
 	double result = 0;
@@ -338,6 +367,7 @@ Expression imag(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+/*Function that returns the magnitude of a complex number*/
 Expression mag(const std::vector<Expression> & args) {
 
 	double result = 0;
