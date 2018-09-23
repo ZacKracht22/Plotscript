@@ -13,6 +13,11 @@ Expression::Expression(const Atom & a){
   m_head = a;
 }
 
+Expression::Expression(const std::vector<Expression> & args) {
+	m_head = Atom("list");
+	m_tail = args;
+}
+
 // recursive copy
 Expression::Expression(const Expression & a){
 
@@ -172,7 +177,7 @@ Expression Expression::handle_define(Environment & env){
 // this limits the practical depth of our AST
 Expression Expression::eval(Environment & env){
   
-  if(m_tail.empty()){
+  if(m_tail.empty() && m_head != Atom("list")){
     return handle_lookup(m_head, env);
   }
   // handle begin special-form
@@ -199,10 +204,17 @@ std::ostream & operator<<(std::ostream & out, const Expression & exp){
 	if (!exp.head().isComplex())
 	{
 		out << "(";
-		out << exp.head();
+		if (exp.head() != Atom("list")) {
+			out << exp.head();
+		}
 
 		for (auto e = exp.tailConstBegin(); e != exp.tailConstEnd(); ++e) {
-			out << *e;
+			if(e == exp.tailConstBegin()){
+				out << *e;
+			}
+			else {
+				out << " " << *e;
+			}
 		}
 
 		out << ")";
@@ -241,3 +253,8 @@ bool operator!=(const Expression & left, const Expression & right) noexcept{
 
   return !(left == right);
 }
+
+std::vector<Expression> Expression::getTail() const noexcept {
+	return m_tail;
+}
+

@@ -27,6 +27,63 @@ Expression default_proc(const std::vector<Expression> & args){
   return Expression();
 };
 
+//Procedure to create a list as a vector of expressions
+Expression list(const std::vector<Expression> & args) {
+	return Expression(args);
+};
+
+//Procedure to return the first item of a list.
+//Throws a semantic error for arguments not being a list, more than 1 argument, or an empty list
+Expression first(const std::vector<Expression> & args) {
+	std::vector<Expression> emptyVector;
+
+	if (nargs_equal(args, 1)) {
+		if (args[0].head() == Atom("list")) {
+			if (args[0] != Expression(emptyVector)) {
+				std::vector<Expression> tail = args[0].getTail();
+				return Expression(tail[0]);
+			}
+			else {
+				throw SemanticError("Error in call to first, argument is an empty list");
+			}
+		}
+		else {
+			throw SemanticError("Error in call to first, argument not a list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to first, need 1 argument");
+	}
+};
+
+//Procedure to return the second-last items in a list.
+//Throws a semantic error for arguments not being a list, more than 1 argument, or an empty list
+Expression rest(const std::vector<Expression> & args) {
+	std::vector<Expression> emptyVector, returnVector;
+
+	if (nargs_equal(args, 1)) {
+		if (args[0].head() == Atom("list")) {
+			if (args[0] != Expression(emptyVector)) {
+				//iterate through the vector and push back each expression onto the return vector except for the first item
+				for (auto e = args[0].tailConstBegin(); e != args[0].tailConstEnd(); ++e) {
+					if (e != args[0].tailConstBegin()) {
+						returnVector.push_back(*e);
+					}
+				}
+				return Expression(returnVector);
+			}
+			else {
+				throw SemanticError("Error in call to rest, argument is an empty list");
+			}
+		}
+		else {
+			throw SemanticError("Error in call to rest, argument not a list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to rest, need 1 argument");
+	}
+};
 
 Expression add(const std::vector<Expression> & args){
 
@@ -90,7 +147,7 @@ Expression mul(const std::vector<Expression> & args){
 			complexResult *= a.head().asComplex();
 		}
 		else {
-			throw SemanticError("Error in call to add, argument not a number");
+			throw SemanticError("Error in call to multiply, argument not a number");
 		}
 	}
 
@@ -555,4 +612,13 @@ void Environment::reset(){
 
   // Procedure: conj;
   envmap.emplace("conj", EnvResult(ProcedureType, conj));
+
+  // Procedure: list;
+  envmap.emplace("list", EnvResult(ProcedureType, list));
+
+  // Procedure: first;
+  envmap.emplace("first", EnvResult(ProcedureType, first));
+
+  // Procedure: rest;
+  envmap.emplace("rest", EnvResult(ProcedureType, rest));
 }

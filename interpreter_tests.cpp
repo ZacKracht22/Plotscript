@@ -261,10 +261,37 @@ TEST_CASE( "Test arithmetic procedures", "[interpreter]" ) {
 
 TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
   
-  std::vector<std::string> programs = {"(@ none)", // so such procedure
+  std::vector<std::string> programs = {"(@ none)", // no such procedure
 				       "(- 1 1 2)", // too many arguments
 				       "(define begin 1)", // redefine special form
-				       "(define pi 3.14)"}; // redefine builtin symbol
+				       "(define pi 3.14)", // redefine builtin symbol
+					   "(define I (sqrt (- 1)))", // redefine builtin symbol
+					   "(+ 1 2 3 @)", //can't add a symbol
+					   "(* 1 2 3 @)", //can't multiply a symbol
+					   "(- 1 2 3)", //can't subtract more than 2 numbers
+					   "(- @)", //can't negate a symbol
+					   "(- 1 @)", //can't subtract a symbol
+					   "(/ 1 2 3 4)", //can't divide more than 2 numbers
+					   "(/ 1 !)", //can't divide a symbol
+					   "(sqrt 2 3)", //can't call sqrt with more than 1 arg
+					   "(pow 1 2 3)", //can't call pow with more than 2 args
+					   "(ln (- 5))", //can't call ln with a negative number
+					   "(sin I)", //can't call sin with complex num
+					   "(cos I)", //can't call cos with complex num
+					   "(tan I)", //can't call tan with complex num
+					   "(sin 1 2)", //can't call sin with multiple args
+					   "(cos 1 2)", //can't call cos with multiple args
+					   "(tan 1 2)", //can't call tan with multiple args
+						"(real 2)", //can't call real with number
+						"(mag 5)",  //cant call mag with number
+						"(imag 8)", //can't call imag with number
+						"(real I I I)", //can't call real with 3 args
+						"(mag I I I)",  //cant call mag with 3 args
+						"(imag I I I)",//cant call imag with 3 args
+						"(arg 3)", //cant call arg with a number
+						"(arg I I I)", //cant call arg with multiple arguments
+						"(conj 3)", //cant call conj with a number
+					    "(conj I I I)" }; //cant call conj with multiple arguments
     for(auto s : programs){
       Interpreter interp;
 
@@ -275,6 +302,7 @@ TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
       
       REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
     }
+
 }
 
 TEST_CASE( "Test for exceptions from semantically incorrect input", "[interpreter]" ) {
@@ -742,6 +770,124 @@ TEST_CASE("complex conj tests", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		std::complex<double> expected(1.0, -1.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+}
+
+TEST_CASE("Test for creating lists using list procedure", "[interpreter]") {
+
+	{
+		//Testing the creation of an empty list
+		std::string program = "(list)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(list 1)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		//create a list with an int, a complex type, a list of ints, and an empty list
+		std::string program = "(define mylist (list 1 (+ 1 I) (list 5 4 3 2 1) (list)))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(std::complex<double>(1.0,1.0)));
+		std::vector<Expression> sublist;
+		sublist.push_back(Expression(5));
+		sublist.push_back(Expression(4));
+		sublist.push_back(Expression(3));
+		sublist.push_back(Expression(2));
+		sublist.push_back(Expression(1));
+		expected.push_back(Expression(sublist));
+		sublist.clear();
+		expected.push_back(Expression(sublist));
+		REQUIRE(result == Expression(expected));
+	}
+}
+
+TEST_CASE("Test for first procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(first (1))", //cannot call first on a non-list
+											  "(first (list))", //cannot call first on an empty list
+											  "(first (list 1 2) (list 3 4))" }; //cannot call list with multiple arguments
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	//test that the first procedure works for lists of numbers
+	{
+		std::string program = "(first (list 2 1 8 0))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(2));
+	}
+
+	//test that the first procedure works for lists of complex
+	{
+		std::string program = "(first (list I 1 2 3))";
+		INFO(program);
+		Expression result = run(program);
+		std::complex<double> expected(0.0, 1.0);
+		REQUIRE(result == Expression(expected));
+	}
+
+}
+
+TEST_CASE("Tesst for rest procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(rest (1))", //cannot call rest on a non-list
+			"(rest (list))", //cannot call rest on an empty list
+			"(rest (list 1 2) (list 3 4))" }; //cannot call rest with multiple arguments
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	//test that the rest procedure works for lists of numbers
+	{
+		std::string program = "(rest (list 2 1 8 0))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(8));
+		expected.push_back(Expression(0));
+		REQUIRE(result == Expression(expected));
+	}
+
+	//test that the rest procedure works for lists of complex
+	{
+		std::string program = "(rest (list 1 I 2 I))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(std::complex<double>(0.0,1.0)));
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(std::complex<double>(0.0, 1.0)));
 		REQUIRE(result == Expression(expected));
 	}
 

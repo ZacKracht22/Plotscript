@@ -27,6 +27,8 @@ public:
   /// Default construct and Expression, whose type in NoneType
   Expression();
 
+  Expression(const std::vector<Expression> & args);
+
   /*! Construct an Expression with given Atom as head an empty tail
     \param atom the atom to make the head
   */
@@ -70,6 +72,8 @@ public:
 
   /// equality comparison for two expressions (recursive)
   bool operator==(const Expression & exp) const noexcept;
+
+  std::vector<Expression> getTail() const noexcept;
   
 private:
 
