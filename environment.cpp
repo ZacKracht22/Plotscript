@@ -156,6 +156,44 @@ Expression join(const std::vector<Expression> & args) {
 	return Expression(retVector);
 };
 
+
+//Procedure to create a list from the first argument to the second arg with an increment of the third arg
+//Throws a semantic error for not 3 args, any args not a number, first not less than second, or negative increment
+Expression range(const std::vector<Expression> & args) {
+	std::vector<Expression> returnVector;
+
+	if (nargs_equal(args, 3)) {
+		if (args[0].isHeadNumber() && args[1].isHeadNumber() && args[2].isHeadNumber()) {
+			if (args[0].head().asNumber() < args[1].head().asNumber()) {
+				if (args[2].head().asNumber() > 0){
+					double begin = args[0].head().asNumber();
+					double end = args[1].head().asNumber();
+					double increment = args[2].head().asNumber();
+					double i = begin;
+					while (i <= end) {
+						returnVector.push_back(Expression(i));
+						i = i + increment;
+					}
+				}
+				else {
+					throw SemanticError("Error in call to range, increment must be positive");
+				}
+			}
+			else {
+				throw SemanticError("Error in call to range, arg 1 must be less than arg 2");
+			}
+		}
+		else {
+			throw SemanticError("Error in call to range, all arguments must be a number");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to range, need 3 arguments");
+	}
+
+	return Expression(returnVector);
+};
+
 Expression add(const std::vector<Expression> & args){
 
   // check all aruments are numbers, while adding
@@ -701,4 +739,7 @@ void Environment::reset(){
 
   // Procedure: join;
   envmap.emplace("join", EnvResult(ProcedureType, join));
+
+  // Procedure: range;
+  envmap.emplace("range", EnvResult(ProcedureType, range));
 }

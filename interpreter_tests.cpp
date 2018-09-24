@@ -996,3 +996,65 @@ TEST_CASE("Test for join procedure involving lists", "[interpreter]") {
 		REQUIRE(result == Expression(expected));
 	}
 }
+
+TEST_CASE("Test for range procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(range 2 1)", //cannot call range w/o 3 args
+			"(join 1 I 1)", //cannot call range when all args not numbers
+			"(join range 1 5 (- 1))", //cannot call range with negative increment
+			"(join range 2 1 1)" }; //cannot call range when first arg is greater than second arg
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	{
+		std::string program = "(range 1 5 1)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(3));
+		expected.push_back(Expression(4));
+		expected.push_back(Expression(5));
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(range (- 3) 1 1)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(-3));
+		expected.push_back(Expression(-2));
+		expected.push_back(Expression(-1));
+		expected.push_back(Expression(0));
+		expected.push_back(Expression(1));
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(range 0 1 0.11)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(0));
+		expected.push_back(Expression(.11));
+		expected.push_back(Expression(.22));
+		expected.push_back(Expression(.33));
+		expected.push_back(Expression(.44));
+		expected.push_back(Expression(.55));
+		expected.push_back(Expression(.66));
+		expected.push_back(Expression(.77));
+		expected.push_back(Expression(.88));
+		expected.push_back(Expression(.99));
+		REQUIRE(result == Expression(expected));
+	}
+}
