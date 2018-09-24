@@ -891,5 +891,108 @@ TEST_CASE("Tesst for rest procedure involving lists", "[interpreter]") {
 		REQUIRE(result == Expression(expected));
 	}
 
+	//test that the rest procedure works for list of 1 value
+	{
+		std::string program = "(rest (list 1))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		REQUIRE(result == Expression(expected));
+	}
+
+
 }
 
+
+TEST_CASE("Tesst for length procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(length (1))", //cannot call length on a non-list
+			"(length (list 1 2) (list 3 4))" }; //cannot call length with multiple arguments
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	//test that the length procedure works for lists of numbers
+	{
+		std::string program = "(length (list 2 1 8 0))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(4));
+	}
+
+	//test that the length procedure works for lists of numbers
+	{
+		std::string program = "(length (list))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression());
+	}
+
+
+}
+
+
+TEST_CASE("Tesst for append procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(append 1 (list 1 2 3))", //cannot call append on a non-list first arg
+			"(append (list 1 2))" }; //cannot call append with 1 argument
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	{
+		std::string program = "(append (list 1 2 3) 4)";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(3));
+		expected.push_back(Expression(4));
+		REQUIRE(result == Expression(expected));
+	}
+}
+
+TEST_CASE("Test for join procedure involving lists", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(join 1 (list 1 2 3))", //cannot call join on a non-list first arg
+			"(join (list 1 2 3) 1)", //cannot call join on a non-list second arg
+			"(join (list 1 2))" }; //cannot call join with 1 argument
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	{
+		std::string program = "(join (list 1 2 3) (list 4 5))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(3));
+		expected.push_back(Expression(4));
+		expected.push_back(Expression(5));
+		REQUIRE(result == Expression(expected));
+	}
+}

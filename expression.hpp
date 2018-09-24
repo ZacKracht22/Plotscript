@@ -74,6 +74,8 @@ public:
   bool operator==(const Expression & exp) const noexcept;
 
   std::vector<Expression> getTail() const noexcept;
+
+  size_t tailLength() const noexcept;
   
 private:
 

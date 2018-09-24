@@ -254,7 +254,13 @@ bool operator!=(const Expression & left, const Expression & right) noexcept{
   return !(left == right);
 }
 
+//Returns the tail of an expression
 std::vector<Expression> Expression::getTail() const noexcept {
 	return m_tail;
+}
+
+//Returns how many expressions are in the tail of an expression
+size_t Expression::tailLength() const noexcept {
+	return m_tail.size();
 }
 

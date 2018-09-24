@@ -85,6 +85,77 @@ Expression rest(const std::vector<Expression> & args) {
 	}
 };
 
+//Procedure to return the length of a list
+//Throws a semantic error for arguments not being a list, more than 1 argument
+Expression length(const std::vector<Expression> & args) {
+	std::vector<Expression> emptyVector;
+
+	if (nargs_equal(args, 1)) {
+		if (args[0].head() == Atom("list")) {
+			if (args[0] != Expression(emptyVector)) {
+				return Expression(args[0].tailLength());
+			}
+			else {
+				return Expression();
+			}
+		}
+		else {
+			throw SemanticError("Error in call to length, argument not a list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to length, need 1 argument");
+	}
+};
+
+//Procedure to append an expression onto another
+//Throws a semantic error for first argument not being a list, or not having binary arguments
+Expression append(const std::vector<Expression> & args) {
+	std::vector<Expression> retVector;
+
+	if (nargs_equal(args, 2)) {
+		if (args[0].head() == Atom("list")) {
+			for (auto e = args[0].tailConstBegin(); e != args[0].tailConstEnd(); ++e) {
+				retVector.push_back(*e);
+			}
+			retVector.push_back(args[1]);
+		}
+		else {
+			throw SemanticError("Error in call to append, argument 1 not a list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to append, need 2 arguments");
+	}
+
+	return Expression(retVector);
+};
+
+//Procedure to join a list onto another
+//Throws a semantic error for not binary args or not two lists
+Expression join(const std::vector<Expression> & args) {
+	std::vector<Expression> retVector;
+
+	if (nargs_equal(args, 2)) {
+		if (args[0].head() == Atom("list") && args[1].head() == Atom("list")) {
+			for (auto e = args[0].tailConstBegin(); e != args[0].tailConstEnd(); ++e) {
+				retVector.push_back(*e);
+			}
+			for (auto e = args[1].tailConstBegin(); e != args[1].tailConstEnd(); ++e) {
+				retVector.push_back(*e);
+			}
+		}
+		else {
+			throw SemanticError("Error in call to join, argument 1 or 2 not a list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to join, need 2 arguments");
+	}
+
+	return Expression(retVector);
+};
+
 Expression add(const std::vector<Expression> & args){
 
   // check all aruments are numbers, while adding
@@ -621,4 +692,13 @@ void Environment::reset(){
 
   // Procedure: rest;
   envmap.emplace("rest", EnvResult(ProcedureType, rest));
+
+  // Procedure: length;
+  envmap.emplace("length", EnvResult(ProcedureType, length));
+
+  // Procedure: append;
+  envmap.emplace("append", EnvResult(ProcedureType, append));
+
+  // Procedure: join;
+  envmap.emplace("join", EnvResult(ProcedureType, join));
 }
