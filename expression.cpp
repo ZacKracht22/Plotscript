@@ -106,8 +106,13 @@ Expression apply(const Atom & op, const std::vector<Expression> & args, const En
 	  Environment newEnv = Environment(env);
 
 	  std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
+
+	  if (params.size() != args.size()){
+		  throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
+	  }
+
 	  for (int i = 0; i < params.size(); i++) {
-		  newEnv.add_exp(params[i].head(), args[i]);
+		  newEnv.add_exp(params[i].head(), args[i], true);
 	  }
 
 	  return lambdaExp.getTail().at(1).eval(newEnv);
@@ -188,7 +193,7 @@ Expression Expression::handle_define(Environment & env) {
 	}
 
 	//and add to env
-	env.add_exp(m_tail[0].head(), result);
+	env.add_exp(m_tail[0].head(), result, false);
 
 	return result;
 }

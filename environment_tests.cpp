@@ -37,18 +37,18 @@ TEST_CASE( "Test add expression", "[environment]" ) {
   Environment env;
 
   Expression a(Atom(1.0));
-  env.add_exp(Atom("one"), a);
+  env.add_exp(Atom("one"), a, false);
   REQUIRE(env.is_known(Atom("one")));
   REQUIRE(env.is_exp(Atom("one")));
   REQUIRE(env.get_exp(Atom("one")) == a);
 
   Expression b(Atom("hello"));
-  env.add_exp(Atom("hi"), b);
+  env.add_exp(Atom("hi"), b, false);
   REQUIRE(env.is_known(Atom("hi")));
   REQUIRE(env.is_exp(Atom("hi")));
   REQUIRE(env.get_exp(Atom("hi")) == b);
 
-  REQUIRE_THROWS_AS(env.add_exp(Atom(1.0), b), SemanticError);
+  REQUIRE_THROWS_AS(env.add_exp(Atom(1.0), b, false), SemanticError);
 }
 
 TEST_CASE( "Test get built-in procedure", "[environment]" ) {
@@ -73,9 +73,9 @@ TEST_CASE( "Test reset", "[environment]" ) {
   Environment env;
 
   Expression a(Atom(1.0));
-  env.add_exp(Atom("one"), a);
+  env.add_exp(Atom("one"), a, false);
   Expression b(Atom("hello"));
-  env.add_exp(Atom("hi"), b);
+  env.add_exp(Atom("hi"), b, false);
 
   env.reset();
   REQUIRE(!env.is_known(Atom("one")));
