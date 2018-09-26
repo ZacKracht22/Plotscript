@@ -27,7 +27,11 @@ public:
   /// Default construct and Expression, whose type in NoneType
   Expression();
 
+  ///Constructor for creating list type
   Expression(const std::vector<Expression> & args);
+
+  ///Constructor for creating lambda function
+  Expression(const Expression & tail0, const Expression & tail1);
 
   /*! Construct an Expression with given Atom as head an empty tail
     \param atom the atom to make the head
@@ -93,6 +97,7 @@ private:
   Expression handle_lookup(const Atom & head, const Environment & env);
   Expression handle_define(Environment & env);
   Expression handle_begin(Environment & env);
+  Expression handle_lambda(Environment & env);
 };
 
 /// Render expression to output stream

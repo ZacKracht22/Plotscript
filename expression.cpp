@@ -18,6 +18,15 @@ Expression::Expression(const std::vector<Expression> & args) {
 	m_tail = args;
 }
 
+Expression::Expression(const Expression & tail0, const Expression & tail1) {
+	std::vector<Expression> tail;
+	tail.push_back(tail0);
+	tail.push_back(tail1);
+
+	m_head = Atom("lambda");
+	m_tail = tail;
+}
+
 // recursive copy
 Expression::Expression(const Expression & a){
 
@@ -91,6 +100,18 @@ Expression apply(const Atom & op, const std::vector<Expression> & args, const En
   if(!op.isSymbol()){
     throw SemanticError("Error during evaluation: procedure name not symbol");
   }
+
+  if (env.is_exp(op)) {
+	  Expression lambdaExp = env.get_exp(op);
+	  Environment newEnv = Environment(env);
+
+	  std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
+	  for (int i = 0; i < params.size(); i++) {
+		  newEnv.add_exp(params[i].head(), args[i]);
+	  }
+
+	  return lambdaExp.getTail().at(1).eval(newEnv);
+  }
   
   // must map to a proc
   if(!env.is_proc(op)){
@@ -137,75 +158,108 @@ Expression Expression::handle_begin(Environment & env){
 }
 
 
-Expression Expression::handle_define(Environment & env){
+Expression Expression::handle_define(Environment & env) {
 
-  // tail must have size 3 or error
-  if(m_tail.size() != 2){
-    throw SemanticError("Error during evaluation: invalid number of arguments to define");
-  }
-  
-  // tail[0] must be symbol
-  if(!m_tail[0].isHeadSymbol()){
-    throw SemanticError("Error during evaluation: first argument to define not symbol");
-  }
+	// tail must have size 3 or error
+	if (m_tail.size() != 2) {
+		throw SemanticError("Error during evaluation: invalid number of arguments to define");
+	}
 
-  // but tail[0] must not be a special-form or procedure
-  std::string s = m_tail[0].head().asSymbol();
-  if((s == "define") || (s == "begin")){
-    throw SemanticError("Error during evaluation: attempt to redefine a special-form");
-  }
-  
-  if(env.is_proc(m_head)){
-    throw SemanticError("Error during evaluation: attempt to redefine a built-in procedure");
-  }
-	
-  // eval tail[1]
-  Expression result = m_tail[1].eval(env);
+	// tail[0] must be symbol
+	if (!m_tail[0].isHeadSymbol()) {
+		throw SemanticError("Error during evaluation: first argument to define not symbol");
+	}
 
-  if(env.is_exp(m_head)){
-    throw SemanticError("Error during evaluation: attempt to redefine a previously defined symbol");
-  }
-    
-  //and add to env
-  env.add_exp(m_tail[0].head(), result);
-  
-  return result;
+	// but tail[0] must not be a special-form or procedure
+	std::string s = m_tail[0].head().asSymbol();
+	if ((s == "define") || (s == "begin")) {
+		throw SemanticError("Error during evaluation: attempt to redefine a special-form");
+	}
+
+	if (env.is_proc(m_head)) {
+		throw SemanticError("Error during evaluation: attempt to redefine a built-in procedure");
+	}
+
+	// eval tail[1]
+	Expression result = m_tail[1].eval(env);
+
+	if (env.is_exp(m_head)) {
+		throw SemanticError("Error during evaluation: attempt to redefine a previously defined symbol");
+	}
+
+	//and add to env
+	env.add_exp(m_tail[0].head(), result);
+
+	return result;
+}
+
+
+Expression Expression::handle_lambda(Environment & env) {
+
+	// tail must have size 2 or error
+	if (m_tail.size() != 2) {
+		throw SemanticError("Error during evaluation: invalid number of arguments to define");
+	}
+
+	//create a vector of parameters as expressions
+	std::vector<Expression> parameters;
+	//push back the head of the first tail member
+	parameters.push_back(m_tail[0].head());
+
+	//for each member of the tail of the first tail member, add to the list of parameters
+	for (auto e = m_tail[0].tailConstBegin(); e != m_tail[0].tailConstEnd(); ++e) {
+		if (e->isHeadSymbol()) {
+			parameters.push_back(*e);
+		}
+	}
+
+	Expression retExpTail0(parameters);
+	Expression retExpTail1 = m_tail[1];
+
+	return Expression(retExpTail0, retExpTail1);
 }
 
 // this is a simple recursive version. the iterative version is more
 // difficult with the ast data structure used (no parent pointer).
 // this limits the practical depth of our AST
-Expression Expression::eval(Environment & env){
-  
-  if(m_tail.empty() && m_head != Atom("list")){
-    return handle_lookup(m_head, env);
-  }
-  // handle begin special-form
-  else if(m_head.isSymbol() && m_head.asSymbol() == "begin"){
-    return handle_begin(env);
-  }
-  // handle define special-form
-  else if(m_head.isSymbol() && m_head.asSymbol() == "define"){
-    return handle_define(env);
-  }
-  // else attempt to treat as procedure
-  else{ 
-    std::vector<Expression> results;
-    for(Expression::IteratorType it = m_tail.begin(); it != m_tail.end(); ++it){
-      results.push_back(it->eval(env));
-    }
-    return apply(m_head, results, env);
-  }
+Expression Expression::eval(Environment & env) {
+
+	if (m_tail.empty() && m_head != Atom("list")) {
+		return handle_lookup(m_head, env);
+	}
+	// handle begin special-form
+	else if (m_head.isSymbol() && m_head.asSymbol() == "begin") {
+		return handle_begin(env);
+	}
+	// handle define special-form
+	else if (m_head.isSymbol() && m_head.asSymbol() == "define") {
+		return handle_define(env);
+	}
+	// handle lambda special-form
+	else if (m_head.isSymbol() && m_head.asSymbol() == "lambda") {
+		return handle_lambda(env);
+	}
+	// else attempt to treat as procedure
+	else {
+		std::vector<Expression> results;
+		for (Expression::IteratorType it = m_tail.begin(); it != m_tail.end(); ++it) {
+			results.push_back(it->eval(env));
+		}
+		return apply(m_head, results, env);
+	}
 }
 
 
-std::ostream & operator<<(std::ostream & out, const Expression & exp){
+std::ostream & operator<<(std::ostream & out, const Expression & exp) {
 
 	if (!exp.head().isComplex())
 	{
 		out << "(";
-		if (exp.head() != Atom("list")) {
+		if (exp.head() != Atom("list") && exp.head() != Atom("lambda")) {
 			out << exp.head();
+			if (exp.tailLength() > 0) {
+				out << " ";
+			}
 		}
 
 		for (auto e = exp.tailConstBegin(); e != exp.tailConstEnd(); ++e) {

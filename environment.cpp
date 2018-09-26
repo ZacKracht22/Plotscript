@@ -27,6 +27,10 @@ Expression default_proc(const std::vector<Expression> & args){
   return Expression();
 };
 
+Environment::Environment(const Environment & env) {
+	envmap = env.envmap;
+}
+
 //Procedure to create a list as a vector of expressions
 Expression list(const std::vector<Expression> & args) {
 	return Expression(args);
@@ -626,7 +630,7 @@ void Environment::add_exp(const Atom & sym, const Expression & exp){
   if(!sym.isSymbol()){
     throw SemanticError("Attempt to add non-symbol to environment");
   }
-    
+
   // error if overwriting symbol map
   if(envmap.find(sym.asSymbol()) != envmap.end()){
     throw SemanticError("Attempt to overwrite symbol in environemnt");
