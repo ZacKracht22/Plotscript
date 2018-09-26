@@ -651,6 +651,27 @@ TEST_CASE("complex division tests", "[interpreter]") {
 		REQUIRE(result == Expression(2.));
 	}
 
+	{
+		std::string program = "(/ 2)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.5));
+	}
+
+	{
+		std::string program = "(/ 4)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(0.25));
+	}
+
+	{
+		std::string program = "(/ I)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(std::complex<double>(0.0,-1.0)));
+	}
+
 }
 
 TEST_CASE("complex real tests", "[interpreter]") {
@@ -927,12 +948,12 @@ TEST_CASE("Tesst for length procedure involving lists", "[interpreter]") {
 		REQUIRE(result == Expression(4));
 	}
 
-	//test that the length procedure works for lists of numbers
+	//test that the length procedure works for empty lists
 	{
 		std::string program = "(length (list))";
 		INFO(program);
 		Expression result = run(program);
-		REQUIRE(result == Expression());
+		REQUIRE(result == Expression(0));
 	}
 
 
@@ -1057,4 +1078,32 @@ TEST_CASE("Test for range procedure involving lists", "[interpreter]") {
 		expected.push_back(Expression(.99));
 		REQUIRE(result == Expression(expected));
 	}
+}
+
+
+TEST_CASE("Testa for lambda function generation", "[interpreter]") {
+
+	{
+		std::string program = R"((begin
+(define f1 (lambda (x y) (+ x y)))
+(f1 1 2)
+))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(3));
+	
+	}
+
+	{
+		std::string program = R"((begin
+(define x 5)
+(define f1 (lambda (x y) (+ x y)))
+(f1 1 2)
+))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(3));
+
+	}
+
 }

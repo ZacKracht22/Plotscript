@@ -96,12 +96,7 @@ Expression length(const std::vector<Expression> & args) {
 
 	if (nargs_equal(args, 1)) {
 		if (args[0].head() == Atom("list")) {
-			if (args[0] != Expression(emptyVector)) {
 				return Expression(args[0].tailLength());
-			}
-			else {
-				return Expression();
-			}
 		}
 		else {
 			throw SemanticError("Error in call to length, argument not a list");
@@ -346,7 +341,16 @@ Expression div(const std::vector<Expression> & args){
     }
   }
   else{
-    throw SemanticError("Error in call to division: invalid number of arguments.");
+	  if (nargs_equal(args, 1) && args[0].isHeadNumber()) {
+		  realResult = 1 / args[0].head().asNumber();
+	  }
+	  else if (nargs_equal(args, 1) && args[0].isHeadComplex()) {
+		  complexResult = std::complex<double>(1.0,0.0) / args[0].head().asComplex();
+		  complexFlag = true;
+	  }
+	  else {
+		  throw SemanticError("Error in call to division: invalid number of arguments.");
+	  }
   }
   return (complexFlag ? Expression(complexResult) : Expression(realResult));
 };
@@ -592,6 +596,32 @@ Expression conj(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+//Binary procedure (first arg is a procedure, second a list) to apply a procedure to each element in a list
+/*Expression apply(const std::vector<Expression> & args) {
+	std::vector<Expression> returnVector;
+	Expression temp;
+
+	if (nargs_equal(args, 2)) {
+		if (args[1].head() == Atom("list")) {
+			if (is_proc(args[0].head())) {
+				for (auto a : args[1].getTail()) {
+					temp = a.eval(this);
+					returnVector.push_back(temp);
+				}
+			}
+		}
+		else {
+			throw SemanticError("Error in call to apply: second arg needs to be list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to apply: invalid number of arguments.");
+	}
+
+	return Expression(returnVector);
+};*/
+
+//////////////////////////////////////////////////////////////////////////////////////////////////// last line of built in procedures
 
 Environment::Environment(){
 
@@ -754,4 +784,7 @@ void Environment::reset(){
 
   // Procedure: range;
   envmap.emplace("range", EnvResult(ProcedureType, range));
+
+  // Procedure: apply;
+  //envmap.emplace("apply", EnvResult(ProcedureType, apply));
 }
