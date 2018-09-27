@@ -1156,7 +1156,8 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 	{
 		std::vector<std::string> programs = { "(map 2 1)",
 			"(map 1)",
-			"(map 1 (list 1 2))"};
+			"(map 1 (list 1 2))",
+		"(map / (list (list 1 2) (list 1 2 3)))"};
 
 		for (auto s : programs) {
 			Interpreter interp;
@@ -1210,6 +1211,18 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 		expected.push_back(Expression(1));
 		expected.push_back(Expression(0.5));
 		expected.push_back(Expression(0.25));
+		REQUIRE(result == Expression(expected));
+
+	}
+
+	{
+		std::string program = "(map * (list (list 2 1) (list 3 4) (list 8 9)))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(12));
+		expected.push_back(Expression(72));
 		REQUIRE(result == Expression(expected));
 
 	}

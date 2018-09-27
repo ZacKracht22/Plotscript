@@ -658,20 +658,34 @@ Expression apply(const std::vector<Expression> & args, Environment & env) {
 Expression map(const std::vector<Expression> & args, Environment & env) {
 	if (nargs_equal(args, 2)) {
 		if (args[1].head() == Atom("list")) {
+			//If the first arg is a procedure (not lambda)
 			if (env.is_proc(args[0].head())) {
-				Expression ret(Atom("list"));
-				for (auto a : args[1].getTail()) {
-					Expression val(args[0].head());
-					val.append(a.head());
-					val = val.eval(env);
-					if (val.isHeadNumber()) {
-						ret.append(val.head().asNumber());
+				//create a return list of values as answer
+					Expression ret(Atom("list"));
+					//for each input parameter
+					for (auto a : args[1].getTail()) {
+						Expression val(args[0].head());
+						Expression temp = args.at(1).getTail().at(0);
+						//if its a list, grab all inputs
+						if (temp.head() == Atom("list")) {
+							for (auto e : a.getTail()) {
+								val.append(e.head());
+							}
+						}
+						//not list, just grab the number
+						else {
+							val.append(a.head());
+						}
+						//evaluate and add to list of answers
+						val = val.eval(env);
+						if (val.isHeadNumber()) {
+							ret.append(val.head().asNumber());
+						}
+						else if (val.isHeadComplex()) {
+							ret.append(val.head().asComplex());
+						}
 					}
-					else if (val.isHeadComplex()) {
-						ret.append(val.head().asComplex());
-					}
-				}
-				return ret;
+					return ret;
 			}
 			else if (args[0].head() == Atom("lambda")) {
 				//get the lambda expression
