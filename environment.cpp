@@ -666,11 +666,9 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 					for (auto a : args[1].getTail()) {
 						Expression val(args[0].head());
 						Expression temp = args.at(1).getTail().at(0);
-						//if its a list, grab all inputs
+						//if its a list, throw an error
 						if (temp.head() == Atom("list")) {
-							for (auto e : a.getTail()) {
-								val.append(e.head());
-							}
+							throw SemanticError("Invalid list argument");
 						}
 						//not list, just grab the number
 						else {
@@ -698,15 +696,22 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 
 				Expression ret(Atom("list"));
 				Expression val;
+
 				for (auto a : inputs) {
 					//if the size of the arguments and the size of the inputs dont match throw an error
-					if (params.size() != a.getTail().size()) {
+					/*if (params.size() != a.getTail().size()) {
 						throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
 					}
+					else if (params.at(0).head() != Atom("list") && a.head() == Atom("list")) {
+						throw SemanticError("Error during evaluation: function does not take a list of args");
+					}
+					else if (params.at(0).head() == Atom("list") && a.head() != Atom("list")) {
+						throw SemanticError("Error during evaluation: function takes a list of args");
+					}*/
 
 					//save the inputs as known expressions
 					for (int i = 0; i < params.size(); i++) {
-						newEnv.add_exp(params[i].head(), a.getTail().at(i), true);
+						newEnv.add_exp(params[i].head(), a, true);
 					}
 
 					//evaluate with that input

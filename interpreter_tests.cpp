@@ -1157,9 +1157,11 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 		std::vector<std::string> programs = { "(map 2 1)",
 			"(map 1)",
 			"(map 1 (list 1 2))",
-		"(map / (list (list 1 2) (list 1 2 3)))"};
+		"(map / (list (list 1 2) (list 1 2 3)))",
+		"(map * (list (list 2 1) (list 3 4) (list 8 9)))" };
 
 		for (auto s : programs) {
+			INFO(s);
 			Interpreter interp;
 			std::istringstream iss(s);
 			interp.parseStream(iss);
@@ -1168,8 +1170,9 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 
 		std::string program = R"((begin
 (define addtwo (lambda (x y) (+ x y)))
-(map addtwo (list (list 1 2) (list 1 2 3)))
+(map addtwo (list (list 1 2) (list 1 3)))
 ))";
+		INFO(program);
 		Interpreter interp;
 		std::istringstream iss(program);
 		interp.parseStream(iss);
@@ -1191,13 +1194,14 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 
 	{
 		std::string program = R"((begin
-(define f1 (lambda (x y) (+ x y)))
-(map f1 (list (list 1 1) (list 2 5)))
+(define addtwo (lambda (x y) (+ x y)))
+(define addtwofromlist (lambda (z) (addtwo (first z) (first (rest z)))))
+(map addtwofromlist (list (list 1 2) (list 3 4)))
 ))";
 		INFO(program);
 		Expression result = run(program);
 		std::vector<Expression> expected;
-		expected.push_back(Expression(2));
+		expected.push_back(Expression(3));
 		expected.push_back(Expression(7));
 		REQUIRE(result == Expression(expected));
 
@@ -1211,18 +1215,6 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 		expected.push_back(Expression(1));
 		expected.push_back(Expression(0.5));
 		expected.push_back(Expression(0.25));
-		REQUIRE(result == Expression(expected));
-
-	}
-
-	{
-		std::string program = "(map * (list (list 2 1) (list 3 4) (list 8 9)))";
-		INFO(program);
-		Expression result = run(program);
-		std::vector<Expression> expected;
-		expected.push_back(Expression(2));
-		expected.push_back(Expression(12));
-		expected.push_back(Expression(72));
 		REQUIRE(result == Expression(expected));
 
 	}
