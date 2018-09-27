@@ -1148,3 +1148,49 @@ TEST_CASE("Tests for apply function", "[interpreter]") {
 	}
 
 }
+
+
+TEST_CASE("Tests for map function", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(map 2 1)",
+			"(map 1)",
+			"(map 1 (list 1 2))"};
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+
+	{
+		std::string program = "(map - (list 1 2 3))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(-1));
+		expected.push_back(Expression(-2));
+		expected.push_back(Expression(-3));
+		REQUIRE(result == Expression(expected));
+
+	}
+
+	{
+		std::string program = R"((begin
+(define f1 (lambda (x y) (+ x y)))
+(map f1 (list (list 1 1) (list 2 5)))
+))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(2));
+		expected.push_back(Expression(7));
+		REQUIRE(result == Expression(expected));
+
+	}
+
+}

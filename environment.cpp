@@ -653,6 +653,74 @@ Expression apply(const std::vector<Expression> & args, Environment & env) {
 
 };
 
+
+//Binary procedure (first arg is a procedure, second a list) to map a procedure to each element in a list
+Expression map(const std::vector<Expression> & args, Environment & env) {
+	if (nargs_equal(args, 2)) {
+		if (args[1].head() == Atom("list")) {
+			if (env.is_proc(args[0].head())) {
+				Expression ret(Atom("list"));
+				for (auto a : args[1].getTail()) {
+					Expression val(args[0].head());
+					val.append(a.head());
+					val = val.eval(env);
+					if (val.isHeadNumber()) {
+						ret.append(val.head().asNumber());
+					}
+					else if (val.isHeadComplex()) {
+						ret.append(val.head().asComplex());
+					}
+				}
+				return ret;
+			}
+			else if (args[0].head() == Atom("lambda")) {
+				//get the lambda expression
+				Expression lambdaExp = args[0];
+				//create new environment
+				Environment newEnv = Environment(env);
+				//get the list of parameter symbols
+				std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
+				std::vector<Expression> inputs = args[1].getTail();
+
+				Expression ret(Atom("list"));
+				Expression val;
+				for (auto a : inputs) {
+					//if the size of the arguments and the size of the inputs dont match throw an error
+					if (params.size() != args.at(1).getTail().size()) {
+						throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
+					}
+
+					//save the inputs as known expressions
+					for (int i = 0; i < params.size(); i++) {
+						newEnv.add_exp(params[i].head(), a.getTail().at(i), true);
+					}
+
+					//evaluate with that input
+					val = lambdaExp.getTail().at(1).eval(newEnv);
+					if (val.isHeadNumber()) {
+						ret.append(val.head().asNumber());
+					}
+					else if (val.isHeadComplex()) {
+						ret.append(val.head().asComplex());
+					}
+				}
+				return ret;
+
+			}
+			else {
+				throw SemanticError("Error in call to apply: first arg must be a procedure or lambda function");
+			}
+		}
+		else {
+			throw SemanticError("Error in call to apply: second arg needs to be list");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to apply: invalid number of arguments.");
+	}
+
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////////////// last line of built in procedures
 
 Environment::Environment(){
@@ -839,4 +907,7 @@ void Environment::reset(){
 
   // Binary Procedure: apply;
   envmap.emplace("apply", EnvResult(ProcedureBiType, apply));
+
+  // Binary Procedure: map;
+  envmap.emplace("map", EnvResult(ProcedureBiType, map));
 }
