@@ -116,12 +116,7 @@ Expression apply(const Atom & op, const std::vector<Expression> & args,  Environ
 	  if (params.size() != args.size()) {
 		  throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
 	  }
-	  else if(params.at(0).head() != Atom("list")  && args.at(0).head() == Atom("list")) {
-		  throw SemanticError("Error during evaluation: function does not take a list of args");
-	  }
-	  else if (params.at(0).head() == Atom("list") && args.at(0).head() != Atom("list")) {
-		  throw SemanticError("Error during evaluation: function takes a list of args");
-	  }
+
 
 	  //save the inputs as known expressions
 	  for (int i = 0; i < params.size(); i++) {

@@ -667,7 +667,7 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 						Expression val(args[0].head());
 						//if its a list, throw an error
 						if (a.head() == Atom("list")) {
-							throw SemanticError("Invalid list argument");
+							throw SemanticError("Error in call to map, invalid list argument");
 						}
 						//not list, just grab the number
 						else {
@@ -697,7 +697,7 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 				Expression val;
 
 				if (params.size() != 1) {
-					throw SemanticError("Cannot map to lambda with multiple inputs");
+					throw SemanticError("Error in call to map, cannot map to lambda with multiple inputs");
 				}
 
 				for (auto a : inputs) {
