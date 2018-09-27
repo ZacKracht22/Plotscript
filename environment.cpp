@@ -686,7 +686,7 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 				Expression val;
 				for (auto a : inputs) {
 					//if the size of the arguments and the size of the inputs dont match throw an error
-					if (params.size() != args.at(1).getTail().size()) {
+					if (params.size() != a.getTail().size()) {
 						throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
 					}
 
@@ -708,15 +708,15 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 
 			}
 			else {
-				throw SemanticError("Error in call to apply: first arg must be a procedure or lambda function");
+				throw SemanticError("Error in call to map: first arg must be a procedure or lambda function");
 			}
 		}
 		else {
-			throw SemanticError("Error in call to apply: second arg needs to be list");
+			throw SemanticError("Error in call to map: second arg needs to be list");
 		}
 	}
 	else {
-		throw SemanticError("Error in call to apply: invalid number of arguments.");
+		throw SemanticError("Error in call to map: invalid number of arguments.");
 	}
 
 };

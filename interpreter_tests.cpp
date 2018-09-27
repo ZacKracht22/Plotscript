@@ -1164,6 +1164,15 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 			interp.parseStream(iss);
 			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
 		}
+
+		std::string program = R"((begin
+(define addtwo (lambda (x y) (+ x y)))
+(map addtwo (list (list 1 2) (list 1 2 3)))
+))";
+		Interpreter interp;
+		std::istringstream iss(program);
+		interp.parseStream(iss);
+		REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
 	}
 
 
@@ -1192,5 +1201,18 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 		REQUIRE(result == Expression(expected));
 
 	}
+
+	{
+		std::string program = "(map / (list 1 2 4))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(1));
+		expected.push_back(Expression(0.5));
+		expected.push_back(Expression(0.25));
+		REQUIRE(result == Expression(expected));
+
+	}
+
 
 }
