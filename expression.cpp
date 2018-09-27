@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <list>
+#include <iostream>
 
 #include "environment.hpp"
 #include "semantic_error.hpp"
@@ -94,7 +95,8 @@ Expression::ConstIteratorType Expression::tailConstEnd() const noexcept{
   return m_tail.cend();
 }
 
-Expression apply(const Atom & op, const std::vector<Expression> & args, const Environment & env){
+
+Expression apply(const Atom & op, const std::vector<Expression> & args,  Environment & env){
 
   // head must be a symbol
   if(!op.isSymbol()){
@@ -102,41 +104,60 @@ Expression apply(const Atom & op, const std::vector<Expression> & args, const En
   }
 
   if (env.is_exp(op)) {
+	  //get the lambda expression
 	  Expression lambdaExp = env.get_exp(op);
+	  //create new environment
 	  Environment newEnv = Environment(env);
 
+	  //get the list of parameter symbols
 	  std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
 
-	  if (params.size() != args.size()){
+	  //if the size of the arguments and the size of the inputs dont match throw an error
+	  if (params.size() != args.size()) {
 		  throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
 	  }
 
+	  //save the inputs as known expressions
 	  for (int i = 0; i < params.size(); i++) {
 		  newEnv.add_exp(params[i].head(), args[i], true);
 	  }
 
+	  //return the evaluation
 	  return lambdaExp.getTail().at(1).eval(newEnv);
   }
-  
-  // must map to a proc
-  if(!env.is_proc(op)){
-    throw SemanticError("Error during evaluation: symbol does not name a procedure");
+  else if (env.is_proc(op)) {
+	  // map from symbol to proc
+	  Procedure proc = env.get_proc(op);
+	  // call proc with args
+	  return proc(args);
   }
-  
-  // map from symbol to proc
-  Procedure proc = env.get_proc(op);
-  
-  // call proc with args
-  return proc(args);
+  else if (env.is_proc_bi(op)){
+		  // map from symbol to binary proc
+		  Procedure_bi proc_bi = env.get_proc_bi(op);
+		  // call proc_bi with args
+		  return proc_bi(args, env);
+  }
+  else
+	  throw SemanticError("Error during evaluation: symbol does not name a procedure");
+
 }
 
 Expression Expression::handle_lookup(const Atom & head, const Environment & env){
-    if(head.isSymbol()){ // if symbol is in env return value
-      if(env.is_exp(head)){
-	return env.get_exp(head);
+    if(head.isSymbol())
+	{ // if symbol is in env return value
+      if(env.is_exp(head))
+	  {
+		return env.get_exp(head);
       }
-      else{
-	throw SemanticError("Error during evaluation: unknown symbol");
+	  else if (env.is_proc(head)) {
+		  return Expression(head);
+	  }
+	  else if (env.is_proc_bi(head)) {
+		  return Expression(head);
+	  }
+      else
+	  {
+		throw SemanticError("Error during evaluation: unknown symbol");
       }
     }
     else if(head.isNumber() || head.isComplex()){

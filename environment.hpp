@@ -23,6 +23,8 @@ needed.
 */
 typedef Expression (*Procedure)(const std::vector<Expression> & args);
 
+typedef Expression (*Procedure_bi)(const std::vector<Expression> & args, Environment & env);
+
 /*! \class Environment
 \brief A class representing the interpreter environment.
 
@@ -86,23 +88,40 @@ public:
   */
   Procedure get_proc(const Atom &sym) const;
 
+  /*! Determine if a symbol has been defined as a binary procedure
+  \param sym the symbol to lookup
+  \return true if thr symbol maps to a procedure_bi
+  */
+  bool is_proc_bi(const Atom &sym) const;
+
+  /*! Get the Procedure_bi the argument symbol maps to
+  \param sym the symbol to lookup
+  \return the procedure_bi it maps to
+
+  Note: return the default procedure_bi if argument is not a symbol
+  or does not map to a known procedure_bi.
+  */
+  Procedure_bi get_proc_bi(const Atom &sym) const;
+
   /*! Reset the environment to its default state. */
   void reset();
 
 private:
   
   // Environment is a mapping from symbols to expressions or procedures
-  enum EnvResultType { ExpressionType, ProcedureType };
+  enum EnvResultType { ExpressionType, ProcedureType, ProcedureBiType};
 
   struct EnvResult {
     EnvResultType type;
     Expression exp; // used when type is ExpressionType
     Procedure proc; // used when type is ProcedureType
+	Procedure_bi proc_bi; //used when type is ProcedureBiType
 
     // constructors for use in container emplace
     EnvResult(){};
     EnvResult(EnvResultType t, Expression e) : type(t), exp(e){};
     EnvResult(EnvResultType t, Procedure p) : type(t), proc(p){};
+	EnvResult(EnvResultType t, Procedure_bi pb) : type(t), proc_bi(pb) {};
   };
 
   // the environment map

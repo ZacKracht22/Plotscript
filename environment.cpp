@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cmath>
 #include <complex>
+#include <iostream>
+
 
 #include "environment.hpp"
 #include "semantic_error.hpp"
@@ -25,6 +27,12 @@ typedef'd Procedure function pointer.
 Expression default_proc(const std::vector<Expression> & args){
   args.size(); // make compiler happy we used this parameter
   return Expression();
+};
+
+// the default binary procedure always returns an expresison of type None
+Expression default_proc_bi(const std::vector<Expression> & args, Environment & env) {
+	args.size(); // make compiler happy we used this parameter
+	return Expression();
 };
 
 Environment::Environment(const Environment & env) {
@@ -194,7 +202,6 @@ Expression range(const std::vector<Expression> & args) {
 };
 
 Expression add(const std::vector<Expression> & args){
-
   // check all aruments are numbers, while adding
   double realResult = 0;
   std::complex<double> complexResult(0.0,0.0);
@@ -597,17 +604,43 @@ Expression conj(const std::vector<Expression> & args) {
 };
 
 //Binary procedure (first arg is a procedure, second a list) to apply a procedure to each element in a list
-/*Expression apply(const std::vector<Expression> & args) {
-	std::vector<Expression> returnVector;
-	Expression temp;
+Expression apply(const std::vector<Expression> & args, Environment & env) {
 
 	if (nargs_equal(args, 2)) {
 		if (args[1].head() == Atom("list")) {
-			if (is_proc(args[0].head())) {
-				for (auto a : args[1].getTail()) {
-					temp = a.eval(this);
-					returnVector.push_back(temp);
+			if (env.is_proc(args[0].head()) ) {
+					Expression ret(args[0].head());
+					for (auto a : args[1].getTail()) {
+						ret.append(a.head());
+					}
+
+					return ret.eval(env);
+			}
+			else if (args[0].head() == Atom("lambda")) {
+				//get the lambda expression
+				Expression lambdaExp = args[0];
+				//create new environment
+				Environment newEnv = Environment(env);
+
+				//get the list of parameter symbols
+				std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
+
+				//if the size of the arguments and the size of the inputs dont match throw an error
+				if (params.size() != args.at(1).getTail().size()) {
+					throw SemanticError("Error during evaluation: lambda function called with incorrect number of args");
 				}
+
+				//save the inputs as known expressions
+				for (int i = 0; i < params.size(); i++) {
+					newEnv.add_exp(params[i].head(), args.at(1).getTail().at(i), true);
+				}
+
+				//return the evaluation
+				return lambdaExp.getTail().at(1).eval(newEnv);
+
+			}
+			else {
+				throw SemanticError("Error in call to apply: first arg must be a procedure or lambda function");
 			}
 		}
 		else {
@@ -618,8 +651,7 @@ Expression conj(const std::vector<Expression> & args) {
 		throw SemanticError("Error in call to apply: invalid number of arguments.");
 	}
 
-	return Expression(returnVector);
-};*/
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////// last line of built in procedures
 
@@ -673,7 +705,6 @@ void Environment::add_exp(const Atom & sym, const Expression & exp, bool lambdaF
   }
   else {
 	  envmap.emplace(sym.asSymbol(), EnvResult(ExpressionType, exp));
-
   }
 }
 
@@ -696,6 +727,27 @@ Procedure Environment::get_proc(const Atom & sym) const{
   }
 
   return default_proc;
+}
+
+bool Environment::is_proc_bi(const Atom & sym) const {
+	if (!sym.isSymbol()) return false;
+
+	auto result = envmap.find(sym.asSymbol());
+	return (result != envmap.end()) && (result->second.type == ProcedureBiType);
+}
+
+Procedure_bi Environment::get_proc_bi(const Atom & sym) const {
+
+	//Procedure proc = default_proc;
+
+	if (sym.isSymbol()) {
+		auto result = envmap.find(sym.asSymbol());
+		if ((result != envmap.end()) && (result->second.type == ProcedureBiType)) {
+			return result->second.proc_bi;
+		}
+	}
+
+	return default_proc_bi;
 }
 
 const double PI = std::atan2(0, -1);
@@ -785,6 +837,6 @@ void Environment::reset(){
   // Procedure: range;
   envmap.emplace("range", EnvResult(ProcedureType, range));
 
-  // Procedure: apply;
-  //envmap.emplace("apply", EnvResult(ProcedureType, apply));
+  // Binary Procedure: apply;
+  envmap.emplace("apply", EnvResult(ProcedureBiType, apply));
 }

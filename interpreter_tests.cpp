@@ -1107,3 +1107,44 @@ TEST_CASE("Testa for lambda function generation", "[interpreter]") {
 	}
 
 }
+
+TEST_CASE("Tests for apply function", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(apply 2 1)",
+		"(apply 1)",
+		"(apply 1 (list 1 2))",
+		"(+ 1 +)" };
+
+		for (auto s : programs) {
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+
+	{
+		std::string program = R"((begin
+(apply + (list 1 2 3))
+))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(6));
+
+	}
+
+	{
+		std::string program = R"((begin
+(define f1 (lambda (x y z) (+ x (- y z))))
+(apply f1 (list 1 3 2))
+))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(2));
+
+	}
+
+}
