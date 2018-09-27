@@ -732,7 +732,6 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////// last line of built in procedures
 
 Environment::Environment(){
 
