@@ -119,7 +119,7 @@ Expression apply(const Atom & op, const std::vector<Expression> & args,  Environ
 
 
 	  //save the inputs as known expressions
-	  for (int i = 0; i < params.size(); i++) {
+	  for (size_t i = 0; i < params.size(); i++) {
 		  newEnv.add_exp(params[i].head(), args[i], true);
 	  }
 
@@ -221,7 +221,7 @@ Expression Expression::handle_define(Environment & env) {
 }
 
 
-Expression Expression::handle_lambda(Environment & env) {
+Expression Expression::handle_lambda() {
 
 	// tail must have size 2 or error
 	if (m_tail.size() != 2) {
@@ -264,7 +264,7 @@ Expression Expression::eval(Environment & env) {
 	}
 	// handle lambda special-form
 	else if (m_head.isSymbol() && m_head.asSymbol() == "lambda") {
-		return handle_lambda(env);
+		return handle_lambda();
 	}
 	// else attempt to treat as procedure
 	else {

@@ -32,6 +32,7 @@ Expression default_proc(const std::vector<Expression> & args){
 // the default binary procedure always returns an expresison of type None
 Expression default_proc_bi(const std::vector<Expression> & args, Environment & env) {
 	args.size(); // make compiler happy we used this parameter
+	env.reset();
 	return Expression();
 };
 
@@ -631,7 +632,7 @@ Expression apply(const std::vector<Expression> & args, Environment & env) {
 				}
 
 				//save the inputs as known expressions
-				for (int i = 0; i < params.size(); i++) {
+				for (size_t i = 0; i < params.size(); i++) {
 					newEnv.add_exp(params[i].head(), args.at(1).getTail().at(i), true);
 				}
 
@@ -702,7 +703,7 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 
 				for (auto a : inputs) {
 					//save the inputs as known expressions
-					for (int i = 0; i < params.size(); i++) {
+					for (size_t i = 0; i < params.size(); i++) {
 						newEnv.add_exp(params[i].head(), a, true);
 					}
 

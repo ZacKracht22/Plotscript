@@ -275,7 +275,10 @@ TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
 					   "(/ 1 !)", //can't divide a symbol
 					   "(sqrt 2 3)", //can't call sqrt with more than 1 arg
 					   "(pow 1 2 3)", //can't call pow with more than 2 args
+					   "(pow 1 !)", 
+					   "(pow 1)", 
 					   "(ln (- 5))", //can't call ln with a negative number
+					   "(ln 1 2)", 
 					   "(sin I)", //can't call sin with complex num
 					   "(cos I)", //can't call cos with complex num
 					   "(tan I)", //can't call tan with complex num
@@ -291,7 +294,8 @@ TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
 						"(arg 3)", //cant call arg with a number
 						"(arg I I I)", //cant call arg with multiple arguments
 						"(conj 3)", //cant call conj with a number
-					    "(conj I I I)" }; //cant call conj with multiple arguments
+					    "(conj I I I)",//cant call conj with multiple arguments
+					    "(define + 1)" }; 
     for(auto s : programs){
       Interpreter interp;
 
@@ -1085,6 +1089,18 @@ TEST_CASE("Testa for lambda function generation", "[interpreter]") {
 
 	{
 		std::string program = R"((begin
+(define addtwo (lambda (x y) (+ x y)))
+((addtwo 1))
+))";
+		INFO(program);
+		Interpreter interp;
+		std::istringstream iss(program);
+		interp.parseStream(iss);
+		REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+	}
+
+	{
+		std::string program = R"((begin
 (define f1 (lambda (x y) (+ x y)))
 (f1 1 2)
 ))";
@@ -1145,6 +1161,19 @@ TEST_CASE("Tests for apply function", "[interpreter]") {
 		Expression result = run(program);
 		REQUIRE(result == Expression(2));
 
+	}
+
+	{
+		std::string program = R"((begin
+(define addtwo (lambda (x y) (+ x y)))
+(apply addtwo (list 1 2 3))
+))";
+		INFO(program);
+		Interpreter interp;
+		std::istringstream iss(program);
+		interp.parseStream(iss);
+		REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+	
 	}
 
 }
