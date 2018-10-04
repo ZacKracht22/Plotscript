@@ -30,11 +30,11 @@ Atom::Atom(const Token & token): Atom(){
     }
   }
   else{ // else assume symbol or string if begins with "
-	  if (token.asString()[0] == '"') {
+	  if (token.type() == Token::TokenType::QUOTE) {
 		  setString(token.asString());
 	  }
     // make sure does not start with number
-    if(!std::isdigit(token.asString()[0])){
+    else if(!std::isdigit(token.asString()[0])){
       setSymbol(token.asString());
     }
   }

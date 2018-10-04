@@ -101,3 +101,23 @@ TEST_CASE("Test tokenize with quotes", "[token]") {
 	REQUIRE(tokens.empty());
 }
 
+TEST_CASE("Test tokenize on a string with spaces", "[token]") {
+	std::string input = "(\"hi my name is zac\")";
+
+	std::istringstream iss(input);
+
+	TokenSequenceType tokens = tokenize(iss);
+
+	REQUIRE(tokens.front().type() == Token::OPEN);
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::QUOTE);
+	REQUIRE(tokens.front().asString() == "\"hi my name is zac\"");
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::CLOSE);
+	tokens.pop_front();
+
+	REQUIRE(tokens.empty());
+}
+

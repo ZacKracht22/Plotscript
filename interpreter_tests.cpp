@@ -1250,3 +1250,43 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 
 
 }
+
+TEST_CASE("Testing creation of strings", "[interpreter]") {
+
+	{
+		std::string program = "(define x \"foo\")";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(Atom("\"foo\"")));
+	}
+
+	{
+		std::string program = "(list \"boo\" \"wow\" \"foo\")";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(Atom("\"boo\"")));
+		expected.push_back(Expression(Atom("\"wow\"")));
+		expected.push_back(Expression(Atom("\"foo\"")));
+		REQUIRE(result == Expression(expected));
+	}
+
+	{
+		std::string program = "(first (list \"boo\" \"wow\" \"foo\"))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result == Expression(Atom("\"boo\"")));
+	}
+
+	{
+		std::string program = "(rest (list \"boo\" \"wow\" \"foo\"))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		expected.push_back(Expression(Atom("\"wow\"")));
+		expected.push_back(Expression(Atom("\"foo\"")));
+		REQUIRE(result == Expression(expected));
+	}
+
+	
+}

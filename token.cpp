@@ -54,6 +54,7 @@ void store_ifnot_empty(std::string & token, TokenSequenceType & seq){
 TokenSequenceType tokenize(std::istream & seq){
   TokenSequenceType tokens;
   std::string token;
+  bool quoteFlag = false;
   
   while(true){
     char c = seq.get();
@@ -75,15 +76,22 @@ TokenSequenceType tokenize(std::istream & seq){
       tokens.push_back(Token::TokenType::CLOSE);
     }
 	else if (c == QUOTECHAR) {
-		if (!token.empty()) {
+		if (quoteFlag) {
 			token.push_back(c);
 			store_ifnot_empty(token, tokens);
+			quoteFlag = false;
 			continue;
 		}
 		token.push_back(c);
+		quoteFlag = true;
 	}
     else if(isspace(c)){
-      store_ifnot_empty(token, tokens);
+		if (!quoteFlag) {
+			store_ifnot_empty(token, tokens);
+		}
+		else {
+			token.push_back(c);
+		}
     }
     else{
       token.push_back(c);

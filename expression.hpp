@@ -71,6 +71,9 @@ public:
   /// convienience member to determine if head atom is a complex
   bool isHeadComplex() const noexcept;
 
+  /// convienience member to determine if head atom is a string
+  bool isHeadString() const noexcept;
+
   /// Evaluate expression using a post-order traversal (recursive)
   Expression eval(Environment & env);
 
