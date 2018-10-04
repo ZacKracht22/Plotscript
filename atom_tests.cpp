@@ -57,6 +57,17 @@ TEST_CASE( "Test constructors", "[atom]" ) {
     REQUIRE(d.isNumber());
     REQUIRE(!d.isSymbol());
   }
+
+  {
+	  INFO("String Constructor");
+	  Atom a("\"foo\"");
+
+	  REQUIRE(!a.isNone());
+	  REQUIRE(!a.isNumber());
+	  REQUIRE(!a.isSymbol());
+	  REQUIRE(a.isString());
+	  REQUIRE(a.asString() == "\"foo\"");
+  }
 }
 
 TEST_CASE( "Test assignment", "[atom]" ) {

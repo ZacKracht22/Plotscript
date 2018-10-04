@@ -57,3 +57,14 @@ TEST_CASE( "Test empty parens", "[parse]" ) {
   REQUIRE(parse(tokens) == Expression());
 }
 
+TEST_CASE("Test string parse", "[parse]") {
+
+	std::string program = "(define x \"foo\")";
+
+	std::istringstream iss(program);
+
+	TokenSequenceType tokens = tokenize(iss);
+
+	REQUIRE(parse(tokens) != Expression());
+}
+

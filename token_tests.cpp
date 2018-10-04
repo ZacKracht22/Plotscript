@@ -73,3 +73,31 @@ TEST_CASE( "Test tokenize", "[token]" ) {
   REQUIRE(tokens.empty());
 }
 
+TEST_CASE("Test tokenize with quotes", "[token]") {
+	std::string input = "(define x \"foo\")";
+
+	std::istringstream iss(input);
+
+	TokenSequenceType tokens = tokenize(iss);
+
+	REQUIRE(tokens.front().type() == Token::OPEN);
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::STRING);
+	REQUIRE(tokens.front().asString() == "define");
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::STRING);
+	REQUIRE(tokens.front().asString() == "x");
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::QUOTE);
+	REQUIRE(tokens.front().asString() == "\"foo\"");
+	tokens.pop_front();
+
+	REQUIRE(tokens.front().type() == Token::CLOSE);
+	tokens.pop_front();
+
+	REQUIRE(tokens.empty());
+}
+

@@ -21,7 +21,7 @@ public:
   /// Construct an Atom of type Number with value
   Atom(double value);
 
-  /// Construct an Atom of type Symbol named value
+  /// Construct an Atom of type Symbol named value or type String if first char is "
   Atom(const std::string & value);
 
   /// Construct an Atom of type Complex with value
@@ -51,6 +51,9 @@ public:
   /// predicate to determine if an Atom is of type Complex
   bool isComplex() const noexcept;
 
+  /// predicate to determine if an Atom is of type string
+  bool isString() const noexcept;
+
   /// value of Atom as a number, return 0 if not a Number
   double asNumber() const noexcept;
 
@@ -60,13 +63,16 @@ public:
   /// value of Atom as a complex number, returns 0+0i if not a complex number
   std::complex<double> asComplex() const noexcept;
 
+  /// value of Atom as a string, returns empty-string if not a String
+  std::string asString() const noexcept;
+
   /// equality comparison based on type and value
   bool operator==(const Atom & right) const noexcept;
 
 private:
 
   // internal enum of known types
-  enum Type {NoneKind, NumberKind, SymbolKind, ComplexKind};
+  enum Type {NoneKind, NumberKind, SymbolKind, ComplexKind, StringKind};
 
   // track the type
   Type m_type;
@@ -75,8 +81,10 @@ private:
   // when setting non POD values (see setSymbol)
   union {
     double numberValue;
-    std::string stringValue;
+    std::string symbolValue;
 	std::complex<double> complexValue;
+
+	std::string stringValue;
   };
 
   // helper to set type and value of Number
@@ -87,6 +95,9 @@ private:
 
   // helper to set type and value of Complex
   void setComplex(const std::complex<double> & value);
+
+  // helper to set type and value of String
+  void setString(const std::string & value);
 };
 
 /// inequality comparison for Atom

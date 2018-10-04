@@ -29,7 +29,10 @@ Atom::Atom(const Token & token): Atom(){
       setNumber(temp);
     }
   }
-  else{ // else assume symbol
+  else{ // else assume symbol or string if begins with "
+	  if (token.asString()[0] == '"') {
+		  setString(token.asString());
+	  }
     // make sure does not start with number
     if(!std::isdigit(token.asString()[0])){
       setSymbol(token.asString());
@@ -38,8 +41,12 @@ Atom::Atom(const Token & token): Atom(){
 }
 
 Atom::Atom(const std::string & value): Atom() {
-  
-  setSymbol(value);
+	if (value[0] == '"') {
+		setString(value);
+	}
+	else {
+		setSymbol(value);
+	}
 }
 
 Atom::Atom(const Atom & x): Atom(){
@@ -47,10 +54,13 @@ Atom::Atom(const Atom & x): Atom(){
     setNumber(x.numberValue);
   }
   else if(x.isSymbol()){
-    setSymbol(x.stringValue);
+    setSymbol(x.symbolValue);
   }
   else if (x.isComplex()) {
 	  setComplex(x.complexValue);
+  }
+  else if (x.isString()) {
+	  setString(x.stringValue);
   }
 }
 
@@ -64,10 +74,13 @@ Atom & Atom::operator=(const Atom & x){
       setNumber(x.numberValue);
     }
     else if(x.m_type == SymbolKind){
-      setSymbol(x.stringValue);
+      setSymbol(x.symbolValue);
     }
 	else if (x.m_type == ComplexKind) {
 	  setComplex(x.complexValue);
+	}
+	else if (x.m_type == StringKind) {
+		setString(x.stringValue);
 	}
   }
   return *this;
@@ -77,7 +90,12 @@ Atom::~Atom(){
 
   // we need to ensure the destructor of the symbol string is called
   if(m_type == SymbolKind){
-    stringValue.~basic_string();
+    symbolValue.~basic_string();
+  }
+
+  // we need to ensure the destructor of the string string is called
+  if (m_type == StringKind) {
+	  stringValue.~basic_string();
   }
 }
 
@@ -97,6 +115,9 @@ bool Atom::isComplex() const noexcept {
 	return m_type == ComplexKind;
 }
 
+bool Atom::isString() const noexcept {
+	return m_type == StringKind;
+}
 
 void Atom::setNumber(double value){
 
@@ -114,13 +135,26 @@ void Atom::setSymbol(const std::string & value){
 
   // we need to ensure the destructor of the symbol string is called
   if(m_type == SymbolKind){
-    stringValue.~basic_string();
+    symbolValue.~basic_string();
   }
     
   m_type = SymbolKind;
 
   // copy construct in place
-  new (&stringValue) std::string(value);
+  new (&symbolValue) std::string(value);
+}
+
+void Atom::setString(const std::string & value) {
+
+	// we need to ensure the destructor of the symbol string is called
+	if (m_type == StringKind) {
+		stringValue.~basic_string();
+	}
+
+	m_type = StringKind;
+
+	// copy construct in place
+	new (&stringValue) std::string(value);
 }
 
 double Atom::asNumber() const noexcept{
@@ -138,10 +172,21 @@ std::string Atom::asSymbol() const noexcept{
   std::string result;
 
   if(m_type == SymbolKind){
-    result = stringValue;
+    result = symbolValue;
   }
 
   return result;
+}
+
+std::string Atom::asString() const noexcept {
+
+	std::string result;
+
+	if (m_type == StringKind) {
+		result = stringValue;
+	}
+
+	return result;
 }
 
 bool Atom::operator==(const Atom & right) const noexcept{
@@ -166,9 +211,16 @@ bool Atom::operator==(const Atom & right) const noexcept{
     {
       if(right.m_type != SymbolKind) return false;
 
-      return stringValue == right.stringValue;
+      return symbolValue == right.symbolValue;
     }
     break;
+  case StringKind:
+  {
+	  if (right.m_type != StringKind) return false;
+
+	  return stringValue == right.stringValue;
+  }
+  break;
   case ComplexKind:
 	{
 	  if (right.m_type != ComplexKind) return false;
@@ -198,6 +250,9 @@ std::ostream & operator<<(std::ostream & out, const Atom & a){
   }
   if (a.isComplex()) {
 	  out << a.asComplex();
+  }
+  if (a.isString()) {
+	  out << a.asString();
   }
   return out;
 }
