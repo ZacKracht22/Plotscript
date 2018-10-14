@@ -256,3 +256,4 @@ std::ostream & operator<<(std::ostream & out, const Atom & a){
   }
   return out;
 }
+

@@ -6,6 +6,7 @@ Defines the Expression type and assiciated functions.
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "token.hpp"
 #include "atom.hpp"
@@ -74,6 +75,9 @@ public:
   /// convienience member to determine if head atom is a string
   bool isHeadString() const noexcept;
 
+  /// convienience member to determine if head atom is a none kind
+  bool isHeadNone() const noexcept;
+
   /// Evaluate expression using a post-order traversal (recursive)
   Expression eval(Environment & env);
 
@@ -83,6 +87,10 @@ public:
   std::vector<Expression> getTail() const noexcept;
 
   size_t tailLength() const noexcept;
+
+  Expression getProperty(Expression& key);
+
+  void setProperty(Expression& key, Expression& val);
   
 private:
 
@@ -92,6 +100,8 @@ private:
   // the tail list is expressed as a vector for access efficiency
   // and cache coherence, at the cost of wasted memory.
   std::vector<Expression> m_tail;
+
+  std::map<Expression, Expression> property_list;
 
   // convenience typedef
   typedef std::vector<Expression>::iterator IteratorType;
@@ -108,5 +118,7 @@ std::ostream & operator<<(std::ostream & out, const Expression & exp);
 
 /// inequality comparison for two expressions (recursive)
 bool operator!=(const Expression & left, const Expression & right) noexcept;
+
+bool operator<(const Expression & left, const Expression & right) noexcept;
   
 #endif

@@ -36,6 +36,12 @@ Expression default_proc_bi(const std::vector<Expression> & args, Environment & e
 	return Expression();
 };
 
+// the default procedure_prop always returns an expresison of type None
+Expression default_proc_prop(std::vector<Expression> & args) {
+	args.size(); // make compiler happy we used this parameter
+	return Expression();
+};
+
 Environment::Environment(const Environment & env) {
 	envmap = env.envmap;
 }
@@ -733,6 +739,44 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 
 };
 
+//Function that adds a the second Expression with the key being the first Expression (if string) 
+//to the third arguments property-list
+Expression set_property(std::vector<Expression> & args) {
+	if (nargs_equal(args, 3)) {
+		if (args[0].isHeadString()) {
+			args.at(2).setProperty(args.at(0), args.at(1));
+		}
+		else {
+			throw SemanticError("Error in call to set-property, first argument not a string");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to set-property, need 3 arguments");
+	}
+
+	return args[2];
+};
+
+//Returns the property given the first arg is a string key and second arg has that property
+Expression get_property(std::vector<Expression> & args) {
+	if (nargs_equal(args, 2)) {
+		if (args[0].isHeadString()) {
+			return args.at(1).getProperty(args.at(0));
+		}
+		else {
+			throw SemanticError("Error in call to get-property, first argument not a string");
+		}
+	}
+	else {
+		throw SemanticError("Error in call to get-property, need 2 arguments");
+	}
+
+
+};
+
+
+
+/////////////////////////////////////////End of defined procedures
 
 Environment::Environment(){
 
@@ -817,8 +861,6 @@ bool Environment::is_proc_bi(const Atom & sym) const {
 
 Procedure_bi Environment::get_proc_bi(const Atom & sym) const {
 
-	//Procedure proc = default_proc;
-
 	if (sym.isSymbol()) {
 		auto result = envmap.find(sym.asSymbol());
 		if ((result != envmap.end()) && (result->second.type == ProcedureBiType)) {
@@ -829,6 +871,25 @@ Procedure_bi Environment::get_proc_bi(const Atom & sym) const {
 	return default_proc_bi;
 }
 
+bool Environment::is_proc_prop(const Atom & sym) const {
+	if (!sym.isSymbol()) return false;
+
+	auto result = envmap.find(sym.asSymbol());
+	return (result != envmap.end()) && (result->second.type == ProcedurePropType);
+}
+
+Procedure_prop Environment::get_proc_prop(const Atom &sym) const {
+
+	if (sym.isSymbol()) {
+		auto result = envmap.find(sym.asSymbol());
+		if ((result != envmap.end()) && (result->second.type == ProcedurePropType)) {
+			return result->second.proc_prop;
+		}
+	}
+
+	return default_proc_prop;
+}
+
 const double PI = std::atan2(0, -1);
 const double EXP = std::exp(1);
 const std::complex<double> I(0.0, 1.0);
@@ -837,88 +898,94 @@ const std::complex<double> I(0.0, 1.0);
 Reset the environment to the default state. First remove all entries and
 then re-add the default ones.
  */
-void Environment::reset(){
+void Environment::reset() {
 
-  envmap.clear();
-  
-  // Built-In value of pi
-  envmap.emplace("pi", EnvResult(ExpressionType, Expression(PI)));
+	envmap.clear();
 
-  // Built-In value of euler's number
-  envmap.emplace("e", EnvResult(ExpressionType, Expression(EXP)));
+	// Built-In value of pi
+	envmap.emplace("pi", EnvResult(ExpressionType, Expression(PI)));
 
-  // Built-In value of euler's number
-  envmap.emplace("I", EnvResult(ExpressionType, Expression(I)));
+	// Built-In value of euler's number
+	envmap.emplace("e", EnvResult(ExpressionType, Expression(EXP)));
 
-  // Procedure: add;
-  envmap.emplace("+", EnvResult(ProcedureType, add)); 
+	// Built-In value of euler's number
+	envmap.emplace("I", EnvResult(ExpressionType, Expression(I)));
 
-  // Procedure: subneg;
-  envmap.emplace("-", EnvResult(ProcedureType, subneg)); 
+	// Procedure: add;
+	envmap.emplace("+", EnvResult(ProcedureType, add));
 
-  // Procedure: mul;
-  envmap.emplace("*", EnvResult(ProcedureType, mul)); 
+	// Procedure: subneg;
+	envmap.emplace("-", EnvResult(ProcedureType, subneg));
 
-  // Procedure: div;
-  envmap.emplace("/", EnvResult(ProcedureType, div)); 
+	// Procedure: mul;
+	envmap.emplace("*", EnvResult(ProcedureType, mul));
 
-  // Procedure: sqrt;
-  envmap.emplace("sqrt", EnvResult(ProcedureType, sqrt));
+	// Procedure: div;
+	envmap.emplace("/", EnvResult(ProcedureType, div));
 
-  // Procedure: pow;
-  envmap.emplace("^", EnvResult(ProcedureType, pow));
+	// Procedure: sqrt;
+	envmap.emplace("sqrt", EnvResult(ProcedureType, sqrt));
 
-  // Procedure: ln;
-  envmap.emplace("ln", EnvResult(ProcedureType, ln));
+	// Procedure: pow;
+	envmap.emplace("^", EnvResult(ProcedureType, pow));
 
-  // Procedure: sin;
-  envmap.emplace("sin", EnvResult(ProcedureType, sin));
+	// Procedure: ln;
+	envmap.emplace("ln", EnvResult(ProcedureType, ln));
 
-  // Procedure: cos;
-  envmap.emplace("cos", EnvResult(ProcedureType, cos));
+	// Procedure: sin;
+	envmap.emplace("sin", EnvResult(ProcedureType, sin));
 
-  // Procedure: tan;
-  envmap.emplace("tan", EnvResult(ProcedureType, tan));
+	// Procedure: cos;
+	envmap.emplace("cos", EnvResult(ProcedureType, cos));
 
-  // Procedure: real;
-  envmap.emplace("real", EnvResult(ProcedureType, real));
+	// Procedure: tan;
+	envmap.emplace("tan", EnvResult(ProcedureType, tan));
 
-  // Procedure: imag;
-  envmap.emplace("imag", EnvResult(ProcedureType, imag));
+	// Procedure: real;
+	envmap.emplace("real", EnvResult(ProcedureType, real));
 
-  // Procedure: mag;
-  envmap.emplace("mag", EnvResult(ProcedureType, mag));
+	// Procedure: imag;
+	envmap.emplace("imag", EnvResult(ProcedureType, imag));
 
-  // Procedure: arg;
-  envmap.emplace("arg", EnvResult(ProcedureType, arg));
+	// Procedure: mag;
+	envmap.emplace("mag", EnvResult(ProcedureType, mag));
 
-  // Procedure: conj;
-  envmap.emplace("conj", EnvResult(ProcedureType, conj));
+	// Procedure: arg;
+	envmap.emplace("arg", EnvResult(ProcedureType, arg));
 
-  // Procedure: list;
-  envmap.emplace("list", EnvResult(ProcedureType, list));
+	// Procedure: conj;
+	envmap.emplace("conj", EnvResult(ProcedureType, conj));
 
-  // Procedure: first;
-  envmap.emplace("first", EnvResult(ProcedureType, first));
+	// Procedure: list;
+	envmap.emplace("list", EnvResult(ProcedureType, list));
 
-  // Procedure: rest;
-  envmap.emplace("rest", EnvResult(ProcedureType, rest));
+	// Procedure: first;
+	envmap.emplace("first", EnvResult(ProcedureType, first));
 
-  // Procedure: length;
-  envmap.emplace("length", EnvResult(ProcedureType, length));
+	// Procedure: rest;
+	envmap.emplace("rest", EnvResult(ProcedureType, rest));
 
-  // Procedure: append;
-  envmap.emplace("append", EnvResult(ProcedureType, append));
+	// Procedure: length;
+	envmap.emplace("length", EnvResult(ProcedureType, length));
 
-  // Procedure: join;
-  envmap.emplace("join", EnvResult(ProcedureType, join));
+	// Procedure: append;
+	envmap.emplace("append", EnvResult(ProcedureType, append));
 
-  // Procedure: range;
-  envmap.emplace("range", EnvResult(ProcedureType, range));
+	// Procedure: join;
+	envmap.emplace("join", EnvResult(ProcedureType, join));
 
-  // Binary Procedure: apply;
-  envmap.emplace("apply", EnvResult(ProcedureBiType, apply));
+	// Procedure: range;
+	envmap.emplace("range", EnvResult(ProcedureType, range));
 
-  // Binary Procedure: map;
-  envmap.emplace("map", EnvResult(ProcedureBiType, map));
+	// Binary Procedure: apply;
+	envmap.emplace("apply", EnvResult(ProcedureBiType, apply));
+
+	// Binary Procedure: map;
+	envmap.emplace("map", EnvResult(ProcedureBiType, map));
+
+	// Binary Procedure: set-property;
+	envmap.emplace("set-property", EnvResult(ProcedurePropType, set_property));
+
+	// Binary Procedure: get-property;
+	envmap.emplace("get-property", EnvResult(ProcedurePropType, get_property));
 }

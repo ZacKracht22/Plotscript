@@ -69,7 +69,9 @@ public:
   /// equality comparison based on type and value
   bool operator==(const Atom & right) const noexcept;
 
+
 private:
+
 
   // internal enum of known types
   enum Type {NoneKind, NumberKind, SymbolKind, ComplexKind, StringKind};

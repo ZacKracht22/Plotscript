@@ -32,6 +32,7 @@ Expression::Expression(const Expression & tail0, const Expression & tail1) {
 Expression::Expression(const Expression & a){
 
   m_head = a.m_head;
+  property_list = a.property_list;
   for(auto e : a.m_tail){
     m_tail.push_back(e);
   }
@@ -42,6 +43,7 @@ Expression & Expression::operator=(const Expression & a){
   // prevent self-assignment
   if(this != &a){
     m_head = a.m_head;
+	property_list = a.property_list;
     m_tail.clear();
     for(auto e : a.m_tail){
       m_tail.push_back(e);
@@ -74,6 +76,10 @@ bool Expression::isHeadComplex() const noexcept {
 
 bool Expression::isHeadString() const noexcept {
 	return m_head.isString();
+}
+
+bool Expression::isHeadNone() const noexcept {
+	return m_head.isNone();
 }
 
 void Expression::append(const Atom & a){
@@ -142,6 +148,13 @@ Expression apply(const Atom & op, const std::vector<Expression> & args,  Environ
 		  // call proc_bi with args
 		  return proc_bi(args, env);
   }
+  else if (env.is_proc_prop(op)) {
+	  // map from symbol to property proc
+	  Procedure_prop proc_prop = env.get_proc_prop(op);
+	  // call proc_bi with args
+	  std::vector<Expression> nonConstArgs = args;
+	  return proc_prop(nonConstArgs);
+  }
   else
 	  throw SemanticError("Error during evaluation: symbol does not name a procedure");
 
@@ -154,10 +167,7 @@ Expression Expression::handle_lookup(const Atom & head, const Environment & env)
 	  {
 		return env.get_exp(head);
       }
-	  else if (env.is_proc(head)) {
-		  return Expression(head);
-	  }
-	  else if (env.is_proc_bi(head)) {
+	  else if (env.is_proc(head) || env.is_proc_bi(head) || env.is_proc_prop(head)) {
 		  return Expression(head);
 	  }
       else
@@ -207,7 +217,7 @@ Expression Expression::handle_define(Environment & env) {
 		throw SemanticError("Error during evaluation: attempt to redefine a special-form");
 	}
 
-	if (env.is_proc(m_head)) {
+	if (env.is_proc(m_head) || env.is_proc_bi(m_head) || env.is_proc_prop(m_head)) {
 		throw SemanticError("Error during evaluation: attempt to redefine a built-in procedure");
 	}
 
@@ -283,6 +293,11 @@ Expression Expression::eval(Environment & env) {
 
 std::ostream & operator<<(std::ostream & out, const Expression & exp) {
 
+	if (exp.isHeadNone()) {
+		out << "NONE";
+		return out;
+	}
+
 	if (!exp.head().isComplex())
 	{
 		out << "(";
@@ -339,6 +354,11 @@ bool operator!=(const Expression & left, const Expression & right) noexcept{
   return !(left == right);
 }
 
+bool operator<(const Expression & left, const Expression & right) noexcept {
+
+	return !(left == right);
+}
+
 //Returns the tail of an expression
 std::vector<Expression> Expression::getTail() const noexcept {
 	return m_tail;
@@ -347,5 +367,14 @@ std::vector<Expression> Expression::getTail() const noexcept {
 //Returns how many expressions are in the tail of an expression
 size_t Expression::tailLength() const noexcept {
 	return m_tail.size();
+}
+
+Expression Expression::getProperty(Expression& key){
+	return property_list[key];
+}
+
+
+void Expression::setProperty(Expression& key, Expression& val){
+	property_list.emplace(key,val);
 }
 

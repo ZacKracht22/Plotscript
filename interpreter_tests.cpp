@@ -1027,9 +1027,9 @@ TEST_CASE("Test for range procedure involving lists", "[interpreter]") {
 	//test that all semantic errors get thrown when needed
 	{
 		std::vector<std::string> programs = { "(range 2 1)", //cannot call range w/o 3 args
-			"(join 1 I 1)", //cannot call range when all args not numbers
-			"(join range 1 5 (- 1))", //cannot call range with negative increment
-			"(join range 2 1 1)" }; //cannot call range when first arg is greater than second arg
+			"(range 1 I 1)", //cannot call range when all args not numbers
+			"(range 1 5 (- 1))", //cannot call range with negative increment
+			"(range 2 1 1)" }; //cannot call range when first arg is greater than second arg
 
 		for (auto s : programs) {
 			Interpreter interp;
@@ -1289,4 +1289,38 @@ TEST_CASE("Testing creation of strings", "[interpreter]") {
 	}
 
 	
+}
+
+TEST_CASE("Testing set-property and get-property methods", "[interpreter]") {
+
+	//test that all semantic errors get thrown when needed
+	{
+		std::vector<std::string> programs = { "(set-property 2 1)",
+			"(set-property 1 2 3)",
+			"(get-property 1 1)",
+			"(get-property 1 2 3)"};
+
+		for (auto s : programs) {
+			INFO(s);
+			Interpreter interp;
+			std::istringstream iss(s);
+			interp.parseStream(iss);
+			REQUIRE_THROWS_AS(interp.evaluate(), SemanticError);
+		}
+	}
+
+	{
+	std::string program = R"((begin
+(define a (+ 1 I))
+(define b (set-property "note" "a complex number" a))
+(get-property "note" b)
+))";
+	INFO(program);
+	Expression result = run(program);
+	REQUIRE(result == Expression(Atom("\"a complex number\"")));
+	}
+
+	
+
+
 }
