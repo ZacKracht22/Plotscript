@@ -293,10 +293,10 @@ Expression Expression::eval(Environment & env) {
 
 std::ostream & operator<<(std::ostream & out, const Expression & exp) {
 
-	/*if (exp == Expression()) {
+	if (exp == Expression()) {
 		out << "NONE";
 		return out;
-	}*/
+	}
 
 	if (!exp.head().isComplex())
 	{
