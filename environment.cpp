@@ -761,7 +761,24 @@ Expression set_property(std::vector<Expression> & args) {
 Expression get_property(std::vector<Expression> & args) {
 	if (nargs_equal(args, 2)) {
 		if (args[0].isHeadString()) {
-			return args.at(1).getProperty(args.at(0));
+			Expression val = args.at(1).getProperty(args.at(0));
+			if (val.isHeadNone()) {
+				if (args.at(0) == Expression(Atom("\"size\""))) {
+					return Expression(0);
+				}
+				else if (args.at(0) == Expression(Atom("\"thickness\""))) {
+					return Expression(1);
+				}
+				else if (args.at(0) == Expression(Atom("\"position\""))) {
+					std::vector<Expression> temp;
+					temp.push_back(Expression(0));
+					temp.push_back(Expression(0));
+					return Expression(temp);
+				}
+			}
+			
+				return args.at(1).getProperty(args.at(0));
+			
 		}
 		else {
 			throw SemanticError("Error in call to get-property, first argument not a string");
@@ -819,7 +836,7 @@ void Environment::add_exp(const Atom & sym, const Expression & exp, bool lambdaF
 
   // error if overwriting symbol map
   if((envmap.find(sym.asSymbol()) != envmap.end()) && !lambdaFlag){
-    throw SemanticError("Attempt to overwrite symbol in environemnt");
+    //throw SemanticError("Attempt to overwrite symbol in environemnt");
   }
 
   if (lambdaFlag) {

@@ -11,11 +11,14 @@ Atom::Atom(): m_type(NoneKind) {}
 Atom::Atom(double value){
 
   setNumber(value);
+  m_type = NumberKind;
 }
 
 Atom::Atom(const std::complex<double> & value) {
 
 	setComplex(value);
+	m_type = ComplexKind;
+
 }
 
 Atom::Atom(const Token & token): Atom(){
@@ -27,15 +30,19 @@ Atom::Atom(const Token & token): Atom(){
     // check for trailing characters if >> succeeds
     if(iss.rdbuf()->in_avail() == 0){
       setNumber(temp);
+	  m_type = NumberKind;
+
     }
   }
   else{ // else assume symbol or string if begins with "
 	  if (token.type() == Token::TokenType::QUOTE) {
 		  setString(token.asString());
+		  m_type = StringKind;
 	  }
     // make sure does not start with number
     else if(!std::isdigit(token.asString()[0])){
       setSymbol(token.asString());
+	  m_type = SymbolKind;
     }
   }
 }
@@ -43,9 +50,11 @@ Atom::Atom(const Token & token): Atom(){
 Atom::Atom(const std::string & value): Atom() {
 	if (value[0] == '"') {
 		setString(value);
+		m_type = StringKind;
 	}
 	else {
 		setSymbol(value);
+		m_type = SymbolKind;
 	}
 }
 
@@ -62,15 +71,14 @@ Atom::Atom(const Atom & x): Atom(){
   else if (x.isString()) {
 	  setString(x.stringValue);
   }
+
+  m_type = x.m_type;
 }
 
 Atom & Atom::operator=(const Atom & x){
 
   if(this != &x){
-    if(x.m_type == NoneKind){
-      m_type = NoneKind;
-    }
-    else if(x.m_type == NumberKind){
+    if(x.m_type == NumberKind){
       setNumber(x.numberValue);
     }
     else if(x.m_type == SymbolKind){
@@ -82,6 +90,8 @@ Atom & Atom::operator=(const Atom & x){
 	else if (x.m_type == StringKind) {
 		setString(x.stringValue);
 	}
+
+	m_type = x.m_type;
   }
   return *this;
 }

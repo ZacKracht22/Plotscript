@@ -261,41 +261,38 @@ TEST_CASE( "Test arithmetic procedures", "[interpreter]" ) {
 
 TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
   
-  std::vector<std::string> programs = {"(@ none)", // no such procedure
-				       "(- 1 1 2)", // too many arguments
-				       "(define begin 1)", // redefine special form
-				       "(define pi 3.14)", // redefine builtin symbol
-					   "(define I (sqrt (- 1)))", // redefine builtin symbol
-					   "(+ 1 2 3 @)", //can't add a symbol
-					   "(* 1 2 3 @)", //can't multiply a symbol
-					   "(- 1 2 3)", //can't subtract more than 2 numbers
-					   "(- @)", //can't negate a symbol
-					   "(- 1 @)", //can't subtract a symbol
-					   "(/ 1 2 3 4)", //can't divide more than 2 numbers
-					   "(/ 1 !)", //can't divide a symbol
-					   "(sqrt 2 3)", //can't call sqrt with more than 1 arg
-					   "(pow 1 2 3)", //can't call pow with more than 2 args
-					   "(pow 1 !)", 
-					   "(pow 1)", 
-					   "(ln (- 5))", //can't call ln with a negative number
-					   "(ln 1 2)", 
-					   "(sin I)", //can't call sin with complex num
-					   "(cos I)", //can't call cos with complex num
-					   "(tan I)", //can't call tan with complex num
-					   "(sin 1 2)", //can't call sin with multiple args
-					   "(cos 1 2)", //can't call cos with multiple args
-					   "(tan 1 2)", //can't call tan with multiple args
-						"(real 2)", //can't call real with number
-						"(mag 5)",  //cant call mag with number
-						"(imag 8)", //can't call imag with number
-						"(real I I I)", //can't call real with 3 args
-						"(mag I I I)",  //cant call mag with 3 args
-						"(imag I I I)",//cant call imag with 3 args
-						"(arg 3)", //cant call arg with a number
-						"(arg I I I)", //cant call arg with multiple arguments
-						"(conj 3)", //cant call conj with a number
-					    "(conj I I I)",//cant call conj with multiple arguments
-					    "(define + 1)" }; 
+	std::vector<std::string> programs = { "(@ none)", // no such procedure
+						 "(- 1 1 2)", // too many arguments
+						 "(define begin 1)", // redefine special form
+						 "(+ 1 2 3 @)", //can't add a symbol
+						 "(* 1 2 3 @)", //can't multiply a symbol
+						 "(- 1 2 3)", //can't subtract more than 2 numbers
+						 "(- @)", //can't negate a symbol
+						 "(- 1 @)", //can't subtract a symbol
+						 "(/ 1 2 3 4)", //can't divide more than 2 numbers
+						 "(/ 1 !)", //can't divide a symbol
+						 "(sqrt 2 3)", //can't call sqrt with more than 1 arg
+						 "(pow 1 2 3)", //can't call pow with more than 2 args
+						 "(pow 1 !)",
+						 "(pow 1)",
+						 "(ln (- 5))", //can't call ln with a negative number
+						 "(ln 1 2)",
+						 "(sin I)", //can't call sin with complex num
+						 "(cos I)", //can't call cos with complex num
+						 "(tan I)", //can't call tan with complex num
+						 "(sin 1 2)", //can't call sin with multiple args
+						 "(cos 1 2)", //can't call cos with multiple args
+						 "(tan 1 2)", //can't call tan with multiple args
+						  "(real 2)", //can't call real with number
+						  "(mag 5)",  //cant call mag with number
+						  "(imag 8)", //can't call imag with number
+						  "(real I I I)", //can't call real with 3 args
+						  "(mag I I I)",  //cant call mag with 3 args
+						  "(imag I I I)",//cant call imag with 3 args
+						  "(arg 3)", //cant call arg with a number
+						  "(arg I I I)", //cant call arg with multiple arguments
+						  "(conj 3)", //cant call conj with a number
+						  "(conj I I I)" };//cant call conj with multiple arguments
     for(auto s : programs){
       Interpreter interp;
 
