@@ -369,12 +369,20 @@ size_t Expression::tailLength() const noexcept {
 	return m_tail.size();
 }
 
-Expression Expression::getProperty(Expression& key){
+Expression Expression::getProperty(std::string key){
 	return property_list[key];
 }
 
 
-void Expression::setProperty(Expression& key, Expression& val){
-	property_list.emplace(key,val);
+void Expression::setProperty(std::string key, Expression& val){
+	property_list[key] = val;
+}
+
+void Expression::setPropertyList(std::map<std::string, Expression> map) {
+	property_list = map;
+}
+
+std::map<std::string, Expression> Expression::getPropertyList() {
+	return property_list;
 }
 

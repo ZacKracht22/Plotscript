@@ -88,9 +88,13 @@ public:
 
   size_t tailLength() const noexcept;
 
-  Expression getProperty(Expression& key);
+  Expression getProperty(std::string key);
 
-  void setProperty(Expression& key, Expression& val);
+  void setProperty(std::string key, Expression& val);
+
+  void setPropertyList(std::map<std::string,Expression> map);
+
+  std::map<std::string, Expression> getPropertyList();
   
 private:
 
@@ -101,7 +105,7 @@ private:
   // and cache coherence, at the cost of wasted memory.
   std::vector<Expression> m_tail;
 
-  std::map<Expression, Expression> property_list;
+  std::map<std::string, Expression> property_list;
 
   // convenience typedef
   typedef std::vector<Expression>::iterator IteratorType;

@@ -744,7 +744,7 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 Expression set_property(std::vector<Expression> & args) {
 	if (nargs_equal(args, 3)) {
 		if (args[0].isHeadString()) {
-			args.at(2).setProperty(args.at(0), args.at(1));
+			args.at(2).setProperty(args.at(0).head().asString(), args.at(1));
 		}
 		else {
 			throw SemanticError("Error in call to set-property, first argument not a string");
@@ -761,24 +761,7 @@ Expression set_property(std::vector<Expression> & args) {
 Expression get_property(std::vector<Expression> & args) {
 	if (nargs_equal(args, 2)) {
 		if (args[0].isHeadString()) {
-			Expression val = args.at(1).getProperty(args.at(0));
-			if (val.isHeadNone()) {
-				if (args.at(0) == Expression(Atom("\"size\""))) {
-					return Expression(0);
-				}
-				else if (args.at(0) == Expression(Atom("\"thickness\""))) {
-					return Expression(1);
-				}
-				else if (args.at(0) == Expression(Atom("\"position\""))) {
-					std::vector<Expression> temp;
-					temp.push_back(Expression(0));
-					temp.push_back(Expression(0));
-					return Expression(temp);
-				}
-			}
-			
-				return args.at(1).getProperty(args.at(0));
-			
+				return args.at(1).getProperty(args.at(0).head().asString());
 		}
 		else {
 			throw SemanticError("Error in call to get-property, first argument not a string");
