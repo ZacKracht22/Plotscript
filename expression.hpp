@@ -7,6 +7,7 @@ Defines the Expression type and assiciated functions.
 #include <string>
 #include <vector>
 #include <map>
+#include <string>
 
 #include "token.hpp"
 #include "atom.hpp"
@@ -78,6 +79,12 @@ public:
   /// convienience member to determine if head atom is a none kind
   bool isHeadNone() const noexcept;
 
+  /// convienience member to determine if head atom is a none kind
+  bool isHeadLambda() const noexcept;
+
+  /// convienience member to determine if head atom is a none kind
+  bool isHeadList() const noexcept;
+
   /// Evaluate expression using a post-order traversal (recursive)
   Expression eval(Environment & env);
 
@@ -124,5 +131,7 @@ std::ostream & operator<<(std::ostream & out, const Expression & exp);
 bool operator!=(const Expression & left, const Expression & right) noexcept;
 
 bool operator<(const Expression & left, const Expression & right) noexcept;
+
+std::string expString(Expression& exp);
   
 #endif

@@ -82,6 +82,14 @@ bool Expression::isHeadNone() const noexcept {
 	return m_head.isNone();
 }
 
+bool Expression::isHeadLambda() const noexcept {
+	return m_head == Atom("lambda");
+}
+
+bool Expression::isHeadList() const noexcept {
+	return m_head == Atom("list");
+}
+
 void Expression::append(const Atom & a){
   m_tail.emplace_back(a);
 }
@@ -384,5 +392,47 @@ void Expression::setPropertyList(std::map<std::string, Expression> map) {
 
 std::map<std::string, Expression> Expression::getPropertyList() {
 	return property_list;
+}
+
+std::string expString(Expression& exp) {
+	std::stringstream out;
+
+	if (exp == Expression()) {
+		out << "NONE";
+		return out.str();
+	}
+
+	if (!exp.head().isComplex())
+	{
+		out << "(";
+		if (exp.head() != Atom("list") && exp.head() != Atom("lambda")) {
+			out << exp.head();
+			if (exp.tailLength() > 0) {
+				out << " ";
+			}
+		}
+
+		for (auto e = exp.tailConstBegin(); e != exp.tailConstEnd(); ++e) {
+			if (e == exp.tailConstBegin()) {
+				out << *e;
+			}
+			else {
+				out << " " << *e;
+			}
+		}
+
+		out << ")";
+	}
+	else
+	{
+		out << exp.head();
+
+		for (auto e = exp.tailConstBegin(); e != exp.tailConstEnd(); ++e) {
+			out << *e;
+		}
+	}
+
+
+	return out.str();
 }
 

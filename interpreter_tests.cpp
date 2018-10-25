@@ -815,6 +815,7 @@ TEST_CASE("Test for creating lists using list procedure", "[interpreter]") {
 		std::vector<Expression> expected;
 		expected.push_back(Expression(1));
 		REQUIRE(result == Expression(expected));
+		REQUIRE(result.isHeadList());
 	}
 
 	{
@@ -1116,6 +1117,14 @@ TEST_CASE("Testa for lambda function generation", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		REQUIRE(result == Expression(3));
+
+	}
+
+	{
+		std::string program = "(define a (lambda (x y) (+ x y)))";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result.isHeadLambda());
 
 	}
 
