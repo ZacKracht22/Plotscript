@@ -17,8 +17,8 @@ public:
 	OutputWidget(QWidget *parent = nullptr);
 	void outputExpression(QString input);
 	void outputPoint(Expression& exp);
-	void outputLine(const Expression& exp);
-	void outputText(const Expression& exp);
+	void outputLine(Expression& exp);
+	void outputText(Expression& exp);
 	void clear();
 
 private:
