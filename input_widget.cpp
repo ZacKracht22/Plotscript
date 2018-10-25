@@ -3,7 +3,10 @@
 #include <QString>
 #include <QObject>
 
-InputWidget::InputWidget(QWidget *parent):QPlainTextEdit(parent){}
+InputWidget::InputWidget(QWidget *parent):QPlainTextEdit(parent){
+	QString name = QString::fromStdString("input");
+	setObjectName(name);
+}
 
 void InputWidget::keyPressEvent(QKeyEvent *e) {
 

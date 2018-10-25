@@ -8,6 +8,9 @@
 #include <QDebug>
 
 OutputWidget::OutputWidget(QWidget * parent) : QWidget(parent) {
+	QString name = QString::fromStdString("output");
+	setObjectName(name);
+
 	qgs = new QGraphicsScene();
 	qgv = new QGraphicsView(qgs);
 
