@@ -58,6 +58,10 @@ Atom & Expression::head(){
   return m_head;
 }
 
+Atom Expression::getHead() {
+	return m_head;
+}
+
 const Atom & Expression::head() const{
   return m_head;
 }

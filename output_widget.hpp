@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QString>
 
+#include "expression.hpp"
+
 class QGraphicsView;
 class QGraphicsScene;
 
@@ -14,6 +16,9 @@ public:
 
 	OutputWidget(QWidget *parent = nullptr);
 	void outputExpression(QString input);
+	void outputPoint(Expression& exp);
+	void outputLine(const Expression& exp);
+	void outputText(const Expression& exp);
 	void clear();
 
 private:

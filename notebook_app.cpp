@@ -35,11 +35,25 @@ void NotebookApp::NewInterpret() {
 		else {
 			try {
 				Expression exp = m_interp.evaluate();
+
 				std::string evalExp = "";
-				if (!exp.isHeadLambda()) {
-					evalExp = expString(exp);
+				if (exp.getProperty("\"object-name\"") == Expression(Atom("\"point\""))) {
+					output->outputPoint(exp);
 				}
-				output->outputExpression(QString::fromStdString(evalExp));
+				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"line\""))) {
+					output->outputLine(exp);
+				}
+				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
+					output->outputText(exp);
+				}
+				else if (!exp.isHeadLambda()) {
+					evalExp = expString(exp);
+					output->outputExpression(QString::fromStdString(evalExp));
+				}
+				else {
+					output->outputExpression(QString::fromStdString(evalExp));
+				}
+				
 
 			}
 			catch (const SemanticError & ex) {
