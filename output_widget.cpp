@@ -31,13 +31,15 @@ void OutputWidget::outputExpression(QString input) {
 	qgs->addItem(qgti);
 }
 
-void OutputWidget::outputPoint(Expression& exp) {
-	clear();
+void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
+	if(clearFlag) clear();
 
-	qreal x = exp.getTail().at(0).getHead().asNumber();
-	qreal y = exp.getTail().at(1).getHead().asNumber();
 	qreal width = exp.getProperty("\"size\"").getHead().asNumber();
 	qreal height = width;
+	qreal x = exp.getTail().at(0).getHead().asNumber();
+	x = x - (width / 2);
+	qreal y = exp.getTail().at(1).getHead().asNumber();
+	y = y - (width / 2);
 
 	if (width < 0) {
 		outputExpression(QString::fromStdString("Error: point size cannot be negative"));
@@ -48,16 +50,10 @@ void OutputWidget::outputPoint(Expression& exp) {
 		point->setBrush(brush);
 		qgs->addItem(point);
 	}
-
-	/*qDebug() << "I am point";
-	qDebug() << "X: " << x;
-	qDebug() << "Y: " << y;
-	qDebug() << "Width: " << width;
-	qDebug() << "Height: " << height;*/
 }
 
-void OutputWidget::outputLine(Expression& exp) {
-	clear();
+void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
+	if (clearFlag) clear();
 
 	int thickness = exp.getProperty("\"thickness\"").getHead().asNumber();
 
@@ -77,17 +73,11 @@ void OutputWidget::outputLine(Expression& exp) {
 		line->setPen(pen);
 		qgs->addItem(line);
 	}
-	/*qDebug() << "I am line";
-	qDebug() << "X1: " << x1;
-	qDebug() << "Y1: " << y1;
-	qDebug() << "X2: " << x2;
-	qDebug() << "Y2: " << y2;
-	qDebug() << "Thickness: " << thickness;*/
 }
 
-//need to figure out how to set where the text goes
-void OutputWidget::outputText(Expression& exp) {
-	clear();
+
+void OutputWidget::outputText(Expression& exp, bool clearFlag) {
+	if(clearFlag) clear();
 
 	Atom shouldBeList = exp.getProperty("\"position\"").getHead();
 	std::vector<Expression> point = exp.getProperty("\"position\"").getTail();
@@ -101,10 +91,15 @@ void OutputWidget::outputText(Expression& exp) {
 		temp.erase(temp.length() - 1, 1);
 		QString text = QString::fromStdString(temp);
 		QGraphicsTextItem * qgti = new QGraphicsTextItem(text);
+		
+		int posX = point.at(0).getHead().asNumber();
+		int posY = point.at(1).getHead().asNumber();
+		qgti->setPos(posX,posY);
+
 		qgs->addItem(qgti);
 	}
 
-	//qDebug() << "I am text";
+
 }
 
 void OutputWidget::clear() {

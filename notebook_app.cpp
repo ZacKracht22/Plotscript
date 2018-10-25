@@ -24,6 +24,33 @@ NotebookApp::NotebookApp() {
 	eval_from_file(STARTUP_FILE);
 }
 
+void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
+	if (list.size() == 0) {
+		return;
+	}
+
+	Expression exp = list[0];
+	std::string evalExp = "";
+	if (exp.getProperty("\"object-name\"") == Expression(Atom("\"point\""))) {
+		output->outputPoint(exp, false);
+	}
+	else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"line\""))) {
+		output->outputLine(exp, false);
+	}
+	else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
+		output->outputText(exp, false);
+	}
+	else if (!exp.isHeadLambda()) {
+		evalExp = expString(exp);
+		output->outputExpression(QString::fromStdString(evalExp));
+	}
+	else {
+		output->outputExpression(QString::fromStdString(evalExp));
+	}
+	list.erase(list.begin());
+	recursiveListInterpret(list);
+}
+
 void NotebookApp::NewInterpret() {
 
 		std::string inString = input->toPlainText().toStdString();
@@ -37,14 +64,20 @@ void NotebookApp::NewInterpret() {
 				Expression exp = m_interp.evaluate();
 
 				std::string evalExp = "";
+
 				if (exp.getProperty("\"object-name\"") == Expression(Atom("\"point\""))) {
-					output->outputPoint(exp);
+					output->outputPoint(exp, true);
 				}
 				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"line\""))) {
-					output->outputLine(exp);
+					output->outputLine(exp, true);
 				}
 				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
-					output->outputText(exp);
+					output->outputText(exp, true);
+				}
+				else if (exp.getHead().asSymbol() == "list") {
+					output->clear();
+					std::vector<Expression> list = exp.getTail();
+					recursiveListInterpret(list);
 				}
 				else if (!exp.isHeadLambda()) {
 					evalExp = expString(exp);
