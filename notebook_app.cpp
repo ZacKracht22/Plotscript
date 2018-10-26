@@ -40,13 +40,11 @@ void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 	else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
 		output->outputText(exp, false);
 	}
-	else if (!exp.isHeadLambda()) {
+	else {
 		evalExp = expString(exp);
 		output->outputExpression(QString::fromStdString(evalExp));
 	}
-	else {
-		output->clear();
-	}
+
 	list.erase(list.begin());
 	recursiveListInterpret(list);
 }
