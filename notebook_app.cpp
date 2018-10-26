@@ -45,7 +45,7 @@ void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 		output->outputExpression(QString::fromStdString(evalExp));
 	}
 	else {
-		output->outputExpression(QString::fromStdString(evalExp));
+		output->clear();
 	}
 	list.erase(list.begin());
 	recursiveListInterpret(list);
@@ -84,7 +84,7 @@ void NotebookApp::NewInterpret() {
 					output->outputExpression(QString::fromStdString(evalExp));
 				}
 				else {
-					output->outputExpression(QString::fromStdString(evalExp));
+					output->clear();
 				}
 				
 
