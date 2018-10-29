@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QPlainTextEdit>
 
 InputWidget::InputWidget(QWidget *parent):QPlainTextEdit(parent){
 	QString name = QString::fromStdString("input");

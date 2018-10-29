@@ -27,7 +27,7 @@ OutputWidget::OutputWidget(QWidget * parent) : QWidget(parent) {
 
 void OutputWidget::outputExpression(QString input) {
 	clear();
-	QGraphicsTextItem * qgti = new QGraphicsTextItem(input);
+	qgti = new QGraphicsTextItem(input);
 	qgs->addItem(qgti);
 }
 
@@ -90,7 +90,7 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		temp.erase(0, 1);
 		temp.erase(temp.length() - 1, 1);
 		QString text = QString::fromStdString(temp);
-		QGraphicsTextItem * qgti = new QGraphicsTextItem(text);
+		qgti = new QGraphicsTextItem(text);
 		
 		int posX = point.at(0).getHead().asNumber();
 		int posY = point.at(1).getHead().asNumber();
@@ -105,4 +105,7 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 void OutputWidget::clear() {
 	qgs->clear();
 }
+
+QGraphicsTextItem* OutputWidget::getTextItem() { return qgti; }
+
 

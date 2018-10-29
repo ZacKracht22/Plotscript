@@ -8,6 +8,7 @@
 
 class QGraphicsView;
 class QGraphicsScene;
+class QGraphicsTextItem;
 
 class OutputWidget: public QWidget{
 Q_OBJECT
@@ -20,11 +21,15 @@ public:
 	void outputLine(Expression& exp, bool clearFlag);
 	void outputText(Expression& exp, bool clearFlag);
 	void clear();
+	QGraphicsTextItem* getTextItem();
+
+	friend class NotebookTest;
 
 private:
 
 	QGraphicsView * qgv;
 	QGraphicsScene * qgs;
+	QGraphicsTextItem * qgti;
 
 };
 
