@@ -230,7 +230,7 @@ void NotebookTest::listPointTextAndLine() {
 void NotebookTest::errorTest() {
 
 
-	QString testInput = "(lambda (x y))";
+	QString testInput = "(lambda (x))";
 
 	inputWidget->insertPlainText(testInput);
 
