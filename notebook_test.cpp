@@ -23,6 +23,9 @@ private slots:
   void theTitle();
   void lambdaNoOutput();
   void defaultPointSize();
+  void listPointTextAndLine();
+  void errorTest();
+  void listTest();
 
 private:
 
@@ -201,6 +204,68 @@ void NotebookTest::defaultPointSize() {
 	QList<QGraphicsItem*> items = qgv->items();
 
 	QVERIFY(items.size() == 1);
+
+}
+
+void NotebookTest::listPointTextAndLine() {
+
+	QString testInput = R"((list
+(set-property "size" 5 (make-point 0 0))
+(set-property "thickness" 5 (make-line (make-point (- 10) (- 10)) (make-point 0 0)))
+(set-property "position" (make-point 10 10) (make-text "Hello World!"))
+))";
+
+	inputWidget->insertPlainText(testInput);
+
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier, 200);
+
+	QGraphicsView* qgv = outputWidget->findChild<QGraphicsView*>();
+
+	QList<QGraphicsItem*> items = qgv->items();
+
+	QVERIFY(items.size() == 3);
+
+}
+
+void NotebookTest::errorTest() {
+
+
+	QString testInput = "(lambda (x y))";
+
+	inputWidget->insertPlainText(testInput);
+
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier, 200);
+
+	QGraphicsTextItem* textItem = outputWidget->getTextItem();
+	QVERIFY2(textItem, "Could not find text item");
+
+	QString output = textItem->toPlainText();
+
+	QVERIFY(output == "Error during evaluation: invalid number of arguments to define");
+}
+
+void NotebookTest::listTest() {
+
+	QString testInput = R"((list
+(1) (2) (3) (4) (5)
+))";
+
+	inputWidget->insertPlainText(testInput);
+
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier, 200);
+
+	QGraphicsView* qgv = outputWidget->findChild<QGraphicsView*>();
+
+	QList<QGraphicsItem*> items = qgv->items();
+
+	QVERIFY(items.size() == 1);
+
+	QGraphicsTextItem* textItem = outputWidget->getTextItem();
+	QVERIFY2(textItem, "Could not find text item");
+
+	QString output = textItem->toPlainText();
+
+	QVERIFY(output == "(5)");
 
 }
 

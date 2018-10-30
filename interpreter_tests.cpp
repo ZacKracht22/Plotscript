@@ -292,6 +292,9 @@ TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
 						  "(arg 3)", //cant call arg with a number
 						  "(arg I I I)", //cant call arg with multiple arguments
 						  "(conj 3)", //cant call conj with a number
+		"(begin)",
+		"(define 1 1)",
+		"(lambda (x y))",
 						  "(conj I I I)" };//cant call conj with multiple arguments
     for(auto s : programs){
       Interpreter interp;
@@ -1327,6 +1330,21 @@ TEST_CASE("Testing set-property and get-property methods", "[interpreter]") {
 	}
 
 	
+
+
+}
+
+TEST_CASE("get back to 98 percent", "[interpreter]") {
+
+
+
+	{
+		Atom test;
+		Expression exp(test);
+		REQUIRE(exp.isHeadNone());
+	}
+
+
 
 
 }
