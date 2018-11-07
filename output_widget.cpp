@@ -9,9 +9,10 @@
 #include <QGraphicsTextItem>
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
-#include <QDebug>
+#include <QFont>
 #include <QBrush>
 #include <QPen>
+#include <QDebug>
 
 OutputWidget::OutputWidget(QWidget * parent) : QWidget(parent) {
 	QString name = QString::fromStdString("output");
@@ -91,12 +92,27 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		temp.erase(temp.length() - 1, 1);
 		QString text = QString::fromStdString(temp);
 		qgti = new QGraphicsTextItem(text);
+
+		int scaleFactor = exp.getProperty("\"text-scale\"").getHead().asNumber();
+		int textRotation = exp.getProperty("\"text-rotation\"").getHead().asNumber();
 		
 		int posX = point.at(0).getHead().asNumber();
 		int posY = point.at(1).getHead().asNumber();
-		qgti->setPos(posX,posY);
+		qgti->setPos(posX,posY-10);
+
+		auto font = QFont("Monospace");
+		font.setStyleHint(QFont::TypeWriter);
+		font.setPointSize(1 * scaleFactor);
+		qgti->setFont(font);
+		qgti->setRotation(textRotation);
 
 		qgs->addItem(qgti);
+
+		qDebug() << "Center point: " << qgti->boundingRect().center();
+		qDebug() << "Bottom left point: " << qgti->boundingRect().bottomLeft();
+		qDebug() << "Top left point: " << qgti->boundingRect().topLeft();
+		qDebug() << "Top right point: " << qgti->boundingRect().topRight();
+		qDebug() << "Bottom right point: " << qgti->boundingRect().bottomRight();
 	}
 
 
@@ -106,6 +122,8 @@ void OutputWidget::clear() {
 	qgs->clear();
 }
 
-QGraphicsTextItem* OutputWidget::getTextItem() { return qgti; }
+QGraphicsTextItem* OutputWidget::getTextItem() { 
+	return qgti; 
+}
 
 
