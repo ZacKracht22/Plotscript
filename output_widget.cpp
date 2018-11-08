@@ -12,7 +12,7 @@
 #include <QFont>
 #include <QBrush>
 #include <QPen>
-#include <QDebug>
+#include <QtMath>
 #include <QRectF>
 
 OutputWidget::OutputWidget(QWidget * parent) : QWidget(parent) {
@@ -94,14 +94,14 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		QString text = QString::fromStdString(temp);
 		qgti = new QGraphicsTextItem(text);
 
-		int scaleFactor = exp.getProperty("\"text-scale\"").getHead().asNumber();
-		int textRotation = exp.getProperty("\"text-rotation\"").getHead().asNumber();
+		double scaleFactor = exp.getProperty("\"text-scale\"").getHead().asNumber();
+		double textRotation = exp.getProperty("\"text-rotation\"").getHead().asNumber();
 
 		auto font = QFont("Monospace");
 		font.setStyleHint(QFont::TypeWriter);
 		font.setPointSize(1);
 		qgti->setFont(font);
-		qgti->setRotation(textRotation);
+		qgti->setRotation(-qRadiansToDegrees(textRotation));
 		qgti->setScale(scaleFactor);
 
 		int centerX = point.at(0).getHead().asNumber();
@@ -109,16 +109,12 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qreal defaultWidth = qgti->boundingRect().width();
 		qreal defaultHeight = qgti->boundingRect().height();
 
-		QRectF boundingBox;
-		boundingBox.setBottomLeft(QPointF(centerX - (defaultWidth/2), centerY - (defaultHeight / 2)));
-		boundingBox.setTopLeft(QPointF(centerX - (defaultWidth / 2), centerY + (defaultHeight / 2)));
-		boundingBox.setTopRight(QPointF(centerX + (defaultWidth / 2), centerY + (defaultHeight / 2)));
-		boundingBox.setBottomRight(QPointF(centerX + (defaultWidth / 2), centerY - (defaultHeight / 2)));
+		qgti->setPos(QPointF(centerX - (defaultWidth / 2), centerY - (defaultHeight / 2)));
 
-		qgti->moveBy(-(defaultWidth / 2), (defaultHeight / 2));
 		qgs->addItem(qgti);
-		/*
-		qDebug() << "Center point: " << qgti->boundingRect().center();
+
+
+		/*qDebug() << "Center point: " << qgti->boundingRect().center();
 		qDebug() << "Bottom left point: " << qgti->boundingRect().bottomLeft();
 		qDebug() << "Top left point: " << qgti->boundingRect().topLeft();
 		qDebug() << "Top right point: " << qgti->boundingRect().topRight();

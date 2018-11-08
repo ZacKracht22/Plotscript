@@ -26,6 +26,7 @@ private slots:
   void listPointTextAndLine();
   void errorTest();
   void listTest();
+  void Milestone3Task1();
 
 private:
 
@@ -266,6 +267,21 @@ void NotebookTest::listTest() {
 	QString output = textItem->toPlainText();
 
 	QVERIFY(output == "(5)");
+
+}
+
+void NotebookTest::Milestone3Task1() {
+
+	QString testInput = "(make-text \"hi\")";
+
+	inputWidget->insertPlainText(testInput);
+
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier, 200);
+
+	QGraphicsTextItem* textItem = outputWidget->getTextItem();
+	QVERIFY2(textItem, "Could not find text item");
+
+
 
 }
 
