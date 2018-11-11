@@ -113,18 +113,9 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 
 		qgs->addItem(qgti);
 
-
-		/*qDebug() << "Center point: " << qgti->boundingRect().center();
-		qDebug() << "Bottom left point: " << qgti->boundingRect().bottomLeft();
-		qDebug() << "Top left point: " << qgti->boundingRect().topLeft();
-		qDebug() << "Top right point: " << qgti->boundingRect().topRight();
-		qDebug() << "Bottom right point: " << qgti->boundingRect().bottomRight() << "\n";
-		
-		qDebug() << "Attempted Center point: " << boundingBox.center();
-		qDebug() << "Bottom left point: " << boundingBox.bottomLeft();
-		qDebug() << "Top left point: " << boundingBox.topLeft();
-		qDebug() << "Top right point: " << boundingBox.topRight();
-		qDebug() << "Bottom right point: " << boundingBox.bottomRight();*/
+		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->fitInView(qgti, Qt::KeepAspectRatio);
 
 
 	}
