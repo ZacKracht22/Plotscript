@@ -610,6 +610,59 @@ Expression conj(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+Expression discrete_plot(std::vector<Expression> & args) {
+	Expression SIZE(0.5);
+	Expression POINT(Atom("\"point\""));
+	Expression THICKNESS(0);
+	Expression LINE(Atom("\"line\""));
+	
+	Expression data = args.at(0);
+	Expression options = args.at(1);
+	std::vector<Expression> ret;
+	std::vector<Expression> points;
+	std::vector<Expression> lines;
+	std::vector<Expression> texts;
+
+	for (auto a : data.getTail()) {
+		std::vector<Expression> make_point;
+		make_point.push_back(a.getTail().at(0));
+		make_point.push_back(a.getTail().at(1));
+		Expression point = Expression(make_point);
+		point.setProperty("object-name", POINT);
+		point.setProperty("size",SIZE);
+		points.push_back(point);
+
+		std::vector<Expression> make_axis_point;
+		make_axis_point.push_back(a.getTail().at(0));
+		make_axis_point.push_back(Expression(0));
+		Expression axis_point = Expression(make_axis_point);
+
+		std::vector<Expression> make_line;
+		make_line.push_back(point);
+		make_line.push_back(axis_point);
+		Expression line = Expression(make_line);
+		line.setProperty("object-name", LINE);
+		line.setProperty("thickness", THICKNESS);
+		lines.push_back(line);
+	}
+
+	
+
+	for (auto p : points) {
+		ret.push_back(p);
+	}
+
+	for (auto l : lines) {
+		ret.push_back(l);
+	}
+
+	for (auto o : options.getTail()) {
+		ret.push_back(o);
+	}
+
+	return Expression(ret);
+};
+
 //Binary procedure (first arg is a procedure, second a list) to apply a procedure to each element in a list
 Expression apply(const std::vector<Expression> & args, Environment & env) {
 
@@ -691,16 +744,15 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 					}
 					return ret;
 			}
-			else if (args[0].head() == Atom("lambda")) {
-				//get the lambda expression
-				Expression lambdaExp = args[0];
+			else if (args[0].isHeadLambda()) {
 				//create new environment
 				Environment newEnv = Environment(env);
 				//get the list of parameter symbols
-				std::vector<Expression> params = lambdaExp.getTail().at(0).getTail();
+				std::vector<Expression> params = args.at(0).getTail().at(0).getTail();
 				std::vector<Expression> inputs = args[1].getTail();
 
-				Expression ret(Atom("list"));
+
+				std::vector<Expression> ret;
 				Expression val;
 
 				if (params.size() != 1) {
@@ -714,15 +766,10 @@ Expression map(const std::vector<Expression> & args, Environment & env) {
 					}
 
 					//evaluate with that input
-					val = lambdaExp.getTail().at(1).eval(newEnv);
-					if (val.isHeadNumber()) {
-						ret.append(val.head().asNumber());
-					}
-					else if (val.isHeadComplex()) {
-						ret.append(val.head().asComplex());
-					}
+					val = args.at(0).getTail().at(1).eval(newEnv);
+					ret.push_back(val);
 				}
-				return ret;
+				return Expression(ret);
 
 			}
 			else {
@@ -976,6 +1023,9 @@ void Environment::reset() {
 
 	// Procedure: range;
 	envmap.emplace("range", EnvResult(ProcedureType, range));
+
+	// Procedure: discrete-plot;
+	envmap.emplace("discrete-plot", EnvResult(ProcedurePropType, discrete_plot));
 
 	// Binary Procedure: apply;
 	envmap.emplace("apply", EnvResult(ProcedureBiType, apply));

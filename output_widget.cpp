@@ -116,8 +116,6 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgti, Qt::KeepAspectRatio);
-
-
 	}
 
 

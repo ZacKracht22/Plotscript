@@ -1246,6 +1246,54 @@ TEST_CASE("Tests for map function", "[interpreter]") {
 	}
 
 	{
+		std::string program = R"((begin
+(define f (lambda (x) (list x (+ (* 2 x) 1))))
+(map f (range -2 2 0.5))
+))";
+		INFO(program);
+		Expression result = run(program);
+		std::vector<Expression> expected;
+		std::vector<Expression> point1;
+		std::vector<Expression> point2;
+		std::vector<Expression> point3;
+		std::vector<Expression> point4;
+		std::vector<Expression> point5;
+		std::vector<Expression> point6;
+		std::vector<Expression> point7;
+		std::vector<Expression> point8;
+		std::vector<Expression> point9;
+		point1.push_back(Expression(-2));
+		point1.push_back(Expression(-3));
+		point2.push_back(Expression(-1.5));
+		point2.push_back(Expression(-2));
+		point3.push_back(Expression(-1));
+		point3.push_back(Expression(-1));
+		point4.push_back(Expression(-.5));
+		point4.push_back(Expression(0));
+		point5.push_back(Expression(0));
+		point5.push_back(Expression(1));
+		point6.push_back(Expression(.5));
+		point6.push_back(Expression(2));
+		point7.push_back(Expression(1));
+		point7.push_back(Expression(3));
+		point8.push_back(Expression(1.5));
+		point8.push_back(Expression(4));
+		point9.push_back(Expression(2));
+		point9.push_back(Expression(5));
+		expected.push_back(point1);
+		expected.push_back(point2);
+		expected.push_back(point3);
+		expected.push_back(point4);
+		expected.push_back(point5);
+		expected.push_back(point6);
+		expected.push_back(point7);
+		expected.push_back(point8);
+		expected.push_back(point9);
+		REQUIRE(result == Expression(expected));
+
+	}
+
+	{
 		std::string program = "(map / (list 1 2 4))";
 		INFO(program);
 		Expression result = run(program);
