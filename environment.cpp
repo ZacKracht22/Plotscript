@@ -5,6 +5,7 @@
 #include <complex>
 #include <iostream>
 #include <string>
+#include <iomanip>
 
 
 #include "environment.hpp"
@@ -616,6 +617,7 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	Expression POINT(Atom("\"point\""));
 	Expression THICKNESS(0);
 	Expression LINE(Atom("\"line\""));
+	Expression TEXT(Atom("\"text\""));
 
 	double x_min = args.at(0).getTail().at(0).getTail().at(0).head().asNumber();
 	double x_max = x_min;
@@ -648,8 +650,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		make_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
 		make_point.push_back(Expression(-a.getTail().at(1).head().asNumber() * yscale));
 		Expression point = Expression(make_point);
-		point.setProperty("object-name", POINT);
-		point.setProperty("size",SIZE);
+		point.setProperty("\"object-name\"", POINT);
+		point.setProperty("\"size\"",SIZE);
 		points.push_back(point);
 
 		std::vector<Expression> make_axis_point;
@@ -661,8 +663,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		make_line.push_back(point);
 		make_line.push_back(axis_point);
 		Expression line = Expression(make_line);
-		line.setProperty("object-name", LINE);
-		line.setProperty("thickness", THICKNESS);
+		line.setProperty("\"object-name\"", LINE);
+		line.setProperty("\"thickness\"", THICKNESS);
 		lines.push_back(line);
 	}
 
@@ -676,8 +678,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	make_bottom_line.push_back(make_bottom_line_left);
 	make_bottom_line.push_back(make_bottom_line_right);
 	Expression bottom_line = Expression(make_bottom_line);
-	bottom_line.setProperty("object-name", LINE);
-	bottom_line.setProperty("thickness", THICKNESS);
+	bottom_line.setProperty("\"object-name\"", LINE);
+	bottom_line.setProperty("\"thickness\"", THICKNESS);
 	lines.push_back(bottom_line);
 
 	std::vector<Expression> make_top_line_left;
@@ -690,8 +692,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	make_top_line.push_back(make_top_line_left);
 	make_top_line.push_back(make_top_line_right);
 	Expression top_line = Expression(make_top_line);
-	top_line.setProperty("object-name", LINE);
-	top_line.setProperty("thickness", THICKNESS);
+	top_line.setProperty("\"object-name\"", LINE);
+	top_line.setProperty("\"thickness\"", THICKNESS);
 	lines.push_back(top_line);
 
 	std::vector<Expression> make_left_line_bottom;
@@ -704,8 +706,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	make_left_line.push_back(make_left_line_bottom);
 	make_left_line.push_back(make_left_line_top);
 	Expression left_line = Expression(make_left_line);
-	left_line.setProperty("object-name", LINE);
-	left_line.setProperty("thickness", THICKNESS);
+	left_line.setProperty("\"object-name\"", LINE);
+	left_line.setProperty("\"thickness\"", THICKNESS);
 	lines.push_back(left_line);
 
 	std::vector<Expression> make_right_line_bottom;
@@ -718,8 +720,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	make_right_line.push_back(make_right_line_bottom);
 	make_right_line.push_back(make_right_line_top);
 	Expression right_line = Expression(make_right_line);
-	right_line.setProperty("object-name", LINE);
-	right_line.setProperty("thickness", THICKNESS);
+	right_line.setProperty("\"object-name\"", LINE);
+	right_line.setProperty("\"thickness\"", THICKNESS);
 	lines.push_back(right_line);
 
 	if (x_min < 0 && x_max > 0) {
@@ -733,8 +735,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		make_middle_vertical_line.push_back(make_middle_vertical_line_bottom);
 		make_middle_vertical_line.push_back(make_middle_vertical_line_top);
 		Expression middle_vertical_line = Expression(make_middle_vertical_line);
-		middle_vertical_line.setProperty("object-name", LINE);
-		middle_vertical_line.setProperty("thickness", THICKNESS);
+		middle_vertical_line.setProperty("\"object-name\"", LINE);
+		middle_vertical_line.setProperty("\"thickness\"", THICKNESS);
 		lines.push_back(middle_vertical_line);
 	}
 
@@ -749,8 +751,8 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		make_middle_horizontal_line.push_back(make_middle_horizontal_line_left);
 		make_middle_horizontal_line.push_back(make_middle_horizontal_line_right);
 		Expression middle_horizontal_line = Expression(make_middle_horizontal_line);
-		middle_horizontal_line.setProperty("object-name", LINE);
-		middle_horizontal_line.setProperty("thickness", THICKNESS);
+		middle_horizontal_line.setProperty("\"object-name\"", LINE);
+		middle_horizontal_line.setProperty("\"thickness\"", THICKNESS);
 		lines.push_back(middle_horizontal_line);
 	}
 
@@ -762,21 +764,97 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		ret.push_back(l);
 	}
 
+	std::vector<Expression> titleposition;
+	titleposition.push_back(Expression(xmiddle*xscale));
+	titleposition.push_back(Expression(-y_max*yscale - 3));
+	Expression titlepositionexp = Expression(titleposition);
+
+	std::vector<Expression> xlabel;
+	xlabel.push_back(Expression(xmiddle*xscale));
+	xlabel.push_back(Expression(-y_min*yscale + 3));
+	Expression xlabelexp = Expression(xlabel);
+
+	std::vector<Expression> ylabel;
+	ylabel.push_back(Expression(x_min*xscale - 3));
+	ylabel.push_back(Expression(-ymiddle*yscale));
+	Expression ylabelexp = Expression(ylabel);
+
 	for (auto o : options.getTail()) {
-		ret.push_back(o.getTail().at(1));
+		Expression text = o.getTail().at(1);
+		text.setProperty("\"object-name\"", TEXT);
+
+		if (o.getTail().at(0).head() == Atom("\"title\"")) {
+			text.setProperty("\"position\"", titlepositionexp);
+			text.setProperty("\"text-scale\"", Expression(1));
+			text.setProperty("\"text-rotation\"", Expression(0));
+		}
+		else if (o.getTail().at(0).head() == Atom("\"abscissa-label\"")) {
+			text.setProperty("\"position\"", xlabel);
+			text.setProperty("\"text-scale\"", Expression(1));
+			text.setProperty("\"text-rotation\"", Expression(0));
+		}
+		else if (o.getTail().at(0).head() == Atom("\"ordinate-label\"")) {
+			text.setProperty("\"position\"", ylabel);
+			Expression rotate = Expression(-std::atan2(0, -1) / 2);
+			text.setProperty("\"text-rotation\"", rotate);
+			text.setProperty("\"text-scale\"", Expression(1));
+		}
+
+
+		ret.push_back(text);
 	}
 
-	std::string xmin = "\"" + std::to_string(x_min) + "\"";
-	ret.push_back(Expression(Atom(xmin)));
+	Expression xminlabelpos(Atom("list"));
+	xminlabelpos.append(Expression(x_min*xscale));
+	xminlabelpos.append(Expression(-y_min*yscale + 2));
 
-	std::string xmax = "\"" + std::to_string(x_max) + "\"";
-	ret.push_back(Expression(Atom(xmax)));
+	std::stringstream xmin;
+	xmin << "\"" << std::setprecision(2) << x_min << "\"";
+	Expression xminlabel = Expression(Atom(xmin.str()));
+	xminlabel.setProperty("\"object-name\"", TEXT);
+	xminlabel.setProperty("\"position\"", xminlabelpos);
+	xminlabel.setProperty("\"text-scale\"", Expression(1));
+	xminlabel.setProperty("\"text-rotation\"", Expression(0));
+	ret.push_back(xminlabel);
 
-	std::string ymin = "\"" + std::to_string(y_min) + "\"";
-	ret.push_back(Expression(Atom(ymin)));
+	Expression xmaxlabelpos(Atom("list"));
+	xmaxlabelpos.append(Expression(x_max*xscale));
+	xmaxlabelpos.append(Expression(-y_min*yscale + 2));
 
-	std::string ymax = "\"" + std::to_string(y_max) + "\"";
-	ret.push_back(Expression(Atom(ymax)));
+	std::stringstream xmax;
+	xmax << "\"" << std::setprecision(2) << x_max << "\"";
+	Expression xmaxlabel = Expression(Atom(xmax.str()));
+	xmaxlabel.setProperty("\"object-name\"", TEXT);
+	xmaxlabel.setProperty("\"position\"", xmaxlabelpos);
+	xmaxlabel.setProperty("\"text-scale\"", Expression(1));
+	xmaxlabel.setProperty("\"text-rotation\"", Expression(0));
+	ret.push_back(xmaxlabel);
+
+	Expression yminlabelpos(Atom("list"));
+	yminlabelpos.append(Expression(x_min*xscale - 2));
+	yminlabelpos.append(Expression(-y_min*yscale));
+
+	std::stringstream ymin;
+	ymin << "\"" << std::setprecision(2) << y_min << "\"";
+	Expression yminlabel = Expression(Atom(ymin.str()));
+	yminlabel.setProperty("\"object-name\"", TEXT);
+	yminlabel.setProperty("\"position\"", yminlabelpos);
+	yminlabel.setProperty("\"text-scale\"", Expression(1));
+	yminlabel.setProperty("\"text-rotation\"", Expression(0));
+	ret.push_back(yminlabel);
+
+	Expression ymaxlabelpos(Atom("list"));
+	ymaxlabelpos.append(Expression((x_min*xscale) - 2));
+	ymaxlabelpos.append(Expression(-y_max*yscale));
+
+	std::stringstream ymax;
+	ymax << "\"" << std::setprecision(2) << y_max << "\"";
+	Expression ymaxlabel = Expression(Atom(ymax.str()));
+	ymaxlabel.setProperty("\"object-name\"", TEXT);
+	ymaxlabel.setProperty("\"position\"", ymaxlabelpos);
+	ymaxlabel.setProperty("\"text-scale\"", Expression(1));
+	ymaxlabel.setProperty("\"text-rotation\"", Expression(0));
+	ret.push_back(ymaxlabel);
 
 
 	return Expression(ret);

@@ -66,6 +66,10 @@ const Atom & Expression::head() const{
   return m_head;
 }
 
+void Expression::changeHead(const Atom& newHead) {
+	m_head = newHead;
+}
+
 bool Expression::isHeadNumber() const noexcept{
   return m_head.isNumber();
 }
@@ -390,7 +394,7 @@ Expression Expression::getProperty(std::string key){
 }
 
 
-void Expression::setProperty(std::string key, Expression& val){
+void Expression::setProperty(std::string key, Expression val){
 	property_list[key] = val;
 }
 

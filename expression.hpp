@@ -55,6 +55,8 @@ public:
   /// return a const-reference to the head Atom
   const Atom & head() const;
 
+  void changeHead(const Atom& newHead);
+
   /// append Atom to tail of the expression
   void append(const Atom & a);
 
@@ -103,7 +105,7 @@ public:
 
   Expression getProperty(std::string key);
 
-  void setProperty(std::string key, Expression& val);
+  void setProperty(std::string key, Expression val);
 
   void setPropertyList(std::map<std::string,Expression> map);
 

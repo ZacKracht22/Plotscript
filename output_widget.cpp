@@ -14,6 +14,8 @@
 #include <QPen>
 #include <QtMath>
 #include <QRectF>
+#include <QDebug>
+#include <iostream>
 
 OutputWidget::OutputWidget(QWidget * parent) : QWidget(parent) {
 	QString name = QString::fromStdString("output");
@@ -50,8 +52,17 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 		QGraphicsEllipseItem* point = new QGraphicsEllipseItem(x, y, width, height);
 		QBrush brush(Qt::SolidPattern);
 		point->setBrush(brush);
+		point->setScale(1);
 		qgs->addItem(point);
+
+		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->fitInView(point, Qt::KeepAspectRatio);
 	}
+
+	/*std::cout << "Added Item of type: Point" << std::endl;
+	std::cout << "The point is located at: " << x << " , " << y << std::endl;
+	std::cout << "The point has size of : " << width << std::endl;*/
 }
 
 void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
@@ -73,8 +84,19 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 		QPen pen(Qt::SolidLine);
 		pen.setWidth(thickness);
 		line->setPen(pen);
+		line->setScale(1);
 		qgs->addItem(line);
+
+		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		qgv->fitInView(line, Qt::KeepAspectRatio);
+
+
+		/*std::cout << "Added Item of type: Line" << std::endl;
+		std::cout << "The line's first point: " << x1 << " , " << y1 << std::endl;
+		std::cout << "The line's second point: " << x2 << " , " << y2 << std::endl;*/
 	}
+
 }
 
 
@@ -116,6 +138,10 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgti, Qt::KeepAspectRatio);
+
+		/*std::cout << "Added Item of type: Text" << std::endl;
+		std::cout << "The text reads: " << temp << std::endl;
+		std::cout << "It is positioned at: " << centerX << " , " << centerY << std::endl;*/
 	}
 
 
@@ -128,5 +154,6 @@ void OutputWidget::clear() {
 QGraphicsTextItem* OutputWidget::getTextItem() { 
 	return qgti; 
 }
+
 
 
