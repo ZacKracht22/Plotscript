@@ -1396,3 +1396,23 @@ TEST_CASE("get back to 98 percent", "[interpreter]") {
 
 
 }
+
+TEST_CASE("Testing discrete-plot", "[interpreter]") {
+
+	{
+		std::string program = R"(
+    (discrete-plot (list (list -1 -1) (list 1 1)) 
+    (list (list "title" "The Title") 
+          (list "abscissa-label" "X Label") 
+          (list "ordinate-label" "Y Label") ))
+)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result.getTail().size() == 17);
+		REQUIRE(result.head() == Atom("list"));
+	}
+
+
+
+
+}

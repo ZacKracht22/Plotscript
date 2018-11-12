@@ -4,6 +4,7 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
+#include <string>
 
 
 #include "environment.hpp"
@@ -615,25 +616,44 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	Expression POINT(Atom("\"point\""));
 	Expression THICKNESS(0);
 	Expression LINE(Atom("\"line\""));
+
+	double x_min = args.at(0).getTail().at(0).getTail().at(0).head().asNumber();
+	double x_max = x_min;
+	double y_min = args.at(0).getTail().at(0).getTail().at(1).head().asNumber();
+	double y_max = y_min;
 	
 	Expression data = args.at(0);
 	Expression options = args.at(1);
 	std::vector<Expression> ret;
 	std::vector<Expression> points;
 	std::vector<Expression> lines;
-	std::vector<Expression> texts;
+
+	for (auto d : data.getTail()) {
+		double x_point = d.getTail().at(0).head().asNumber();
+		double y_point = d.getTail().at(1).head().asNumber();
+
+		if (x_point > x_max) x_max = x_point;
+		if (x_point < x_min) x_min = x_point;
+		if (y_point > y_max) y_max = y_point;
+		if (y_point < y_min) y_min = y_point;
+	}
+
+	const double xscale = 20 / (x_max - x_min);
+	const double yscale = 20 / (y_max - y_min);
+	double xmiddle = (x_max + x_min) / 2;
+	double ymiddle = (y_max + y_min) / 2;
 
 	for (auto a : data.getTail()) {
 		std::vector<Expression> make_point;
-		make_point.push_back(a.getTail().at(0));
-		make_point.push_back(a.getTail().at(1));
+		make_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
+		make_point.push_back(Expression(-a.getTail().at(1).head().asNumber() * yscale));
 		Expression point = Expression(make_point);
 		point.setProperty("object-name", POINT);
 		point.setProperty("size",SIZE);
 		points.push_back(point);
 
 		std::vector<Expression> make_axis_point;
-		make_axis_point.push_back(a.getTail().at(0));
+		make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
 		make_axis_point.push_back(Expression(0));
 		Expression axis_point = Expression(make_axis_point);
 
@@ -646,7 +666,93 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		lines.push_back(line);
 	}
 
-	
+	std::vector<Expression> make_bottom_line_left;
+	std::vector<Expression> make_bottom_line_right;
+	std::vector<Expression> make_bottom_line;
+	make_bottom_line_left.push_back(Expression(x_min*xscale));
+	make_bottom_line_left.push_back(Expression(-y_min*yscale));
+	make_bottom_line_right.push_back(Expression((x_min*xscale) + 20));
+	make_bottom_line_right.push_back(Expression(-y_min*yscale));
+	make_bottom_line.push_back(make_bottom_line_left);
+	make_bottom_line.push_back(make_bottom_line_right);
+	Expression bottom_line = Expression(make_bottom_line);
+	bottom_line.setProperty("object-name", LINE);
+	bottom_line.setProperty("thickness", THICKNESS);
+	lines.push_back(bottom_line);
+
+	std::vector<Expression> make_top_line_left;
+	std::vector<Expression> make_top_line_right;
+	std::vector<Expression> make_top_line;
+	make_top_line_left.push_back(Expression(x_min*xscale));
+	make_top_line_left.push_back(Expression(-y_max*yscale));
+	make_top_line_right.push_back(Expression((x_min*xscale) + 20));
+	make_top_line_right.push_back(Expression(-y_max*yscale));
+	make_top_line.push_back(make_top_line_left);
+	make_top_line.push_back(make_top_line_right);
+	Expression top_line = Expression(make_top_line);
+	top_line.setProperty("object-name", LINE);
+	top_line.setProperty("thickness", THICKNESS);
+	lines.push_back(top_line);
+
+	std::vector<Expression> make_left_line_bottom;
+	std::vector<Expression> make_left_line_top;
+	std::vector<Expression> make_left_line;
+	make_left_line_bottom.push_back(Expression(x_min*xscale));
+	make_left_line_bottom.push_back(Expression(-y_min*yscale));
+	make_left_line_top.push_back(Expression(x_min*xscale));
+	make_left_line_top.push_back(Expression((-y_min*yscale) - 20));
+	make_left_line.push_back(make_left_line_bottom);
+	make_left_line.push_back(make_left_line_top);
+	Expression left_line = Expression(make_left_line);
+	left_line.setProperty("object-name", LINE);
+	left_line.setProperty("thickness", THICKNESS);
+	lines.push_back(left_line);
+
+	std::vector<Expression> make_right_line_bottom;
+	std::vector<Expression> make_right_line_top;
+	std::vector<Expression> make_right_line;
+	make_right_line_bottom.push_back(Expression(x_max*xscale));
+	make_right_line_bottom.push_back(Expression(-y_min*yscale));
+	make_right_line_top.push_back(Expression(x_max*xscale));
+	make_right_line_top.push_back(Expression((-y_min*yscale) - 20));
+	make_right_line.push_back(make_right_line_bottom);
+	make_right_line.push_back(make_right_line_top);
+	Expression right_line = Expression(make_right_line);
+	right_line.setProperty("object-name", LINE);
+	right_line.setProperty("thickness", THICKNESS);
+	lines.push_back(right_line);
+
+	if (x_min < 0 && x_max > 0) {
+		std::vector<Expression> make_middle_vertical_line_bottom;
+		std::vector<Expression> make_middle_vertical_line_top;
+		std::vector<Expression> make_middle_vertical_line;
+		make_middle_vertical_line_bottom.push_back(Expression(xmiddle*xscale));
+		make_middle_vertical_line_bottom.push_back(Expression((-ymiddle*yscale) + 10));
+		make_middle_vertical_line_top.push_back(Expression(xmiddle*xscale));
+		make_middle_vertical_line_top.push_back(Expression((-ymiddle*yscale) - 10));
+		make_middle_vertical_line.push_back(make_middle_vertical_line_bottom);
+		make_middle_vertical_line.push_back(make_middle_vertical_line_top);
+		Expression middle_vertical_line = Expression(make_middle_vertical_line);
+		middle_vertical_line.setProperty("object-name", LINE);
+		middle_vertical_line.setProperty("thickness", THICKNESS);
+		lines.push_back(middle_vertical_line);
+	}
+
+	if (y_min < 0 && y_max > 0) {
+		std::vector<Expression> make_middle_horizontal_line_left;
+		std::vector<Expression> make_middle_horizontal_line_right;
+		std::vector<Expression> make_middle_horizontal_line;
+		make_middle_horizontal_line_left.push_back(Expression((xmiddle*xscale) - 10));
+		make_middle_horizontal_line_left.push_back(Expression(-ymiddle*yscale));
+		make_middle_horizontal_line_right.push_back(Expression((xmiddle*xscale) + 10));
+		make_middle_horizontal_line_right.push_back(Expression(-ymiddle*yscale));
+		make_middle_horizontal_line.push_back(make_middle_horizontal_line_left);
+		make_middle_horizontal_line.push_back(make_middle_horizontal_line_right);
+		Expression middle_horizontal_line = Expression(make_middle_horizontal_line);
+		middle_horizontal_line.setProperty("object-name", LINE);
+		middle_horizontal_line.setProperty("thickness", THICKNESS);
+		lines.push_back(middle_horizontal_line);
+	}
 
 	for (auto p : points) {
 		ret.push_back(p);
@@ -657,8 +763,21 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	}
 
 	for (auto o : options.getTail()) {
-		ret.push_back(o);
+		ret.push_back(o.getTail().at(1));
 	}
+
+	std::string xmin = "\"" + std::to_string(x_min) + "\"";
+	ret.push_back(Expression(Atom(xmin)));
+
+	std::string xmax = "\"" + std::to_string(x_max) + "\"";
+	ret.push_back(Expression(Atom(xmax)));
+
+	std::string ymin = "\"" + std::to_string(y_min) + "\"";
+	ret.push_back(Expression(Atom(ymin)));
+
+	std::string ymax = "\"" + std::to_string(y_max) + "\"";
+	ret.push_back(Expression(Atom(ymax)));
+
 
 	return Expression(ret);
 };
