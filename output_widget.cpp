@@ -88,6 +88,9 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
 
+		/*qDebug() << "Adding line";
+		qDebug() << "Line has first point of " << x1 << "," << y1;
+		qDebug() << "Line has second point of " << x2 << "," << y2;*/
 	}
 
 }
@@ -140,9 +143,6 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
 
-		/*std::cout << "Added Item of type: Text" << std::endl;
-		std::cout << "The text reads: " << temp << std::endl;
-		qDebug() << "It is positioned at: " << qgti->pos() + qgti->boundingRect().center();*/
 	}
 
 
@@ -156,9 +156,7 @@ QGraphicsTextItem* OutputWidget::getTextItem() {
 	return qgti; 
 }
 
-void OutputWidget::fitGraphToScreen() {
-	qgv->fitInView(-10, -10, 20, 20 ,Qt::KeepAspectRatio);
-}
+
 
 
 

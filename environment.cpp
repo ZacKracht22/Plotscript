@@ -656,7 +656,7 @@ Expression discrete_plot(std::vector<Expression> & args) {
 
 		std::vector<Expression> make_axis_point;
 		make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
-		make_axis_point.push_back(Expression(-yscale));
+		make_axis_point.push_back(Expression(0));
 		Expression axis_point = Expression(make_axis_point);
 
 		std::vector<Expression> make_line;

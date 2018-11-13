@@ -21,7 +21,6 @@ public:
 	void outputLine(Expression& exp, bool clearFlag);
 	void outputText(Expression& exp, bool clearFlag);
 	void clear();
-	void fitGraphToScreen();
 	QGraphicsTextItem* getTextItem();
 
 	friend class NotebookTest;
