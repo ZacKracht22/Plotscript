@@ -53,16 +53,13 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 		QBrush brush(Qt::SolidPattern);
 		point->setBrush(brush);
 		point->setScale(1);
+		point->setPen(Qt::NoPen);
 		qgs->addItem(point);
 
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		qgv->fitInView(point, Qt::KeepAspectRatio);
+		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
 	}
-
-	/*std::cout << "Added Item of type: Point" << std::endl;
-	std::cout << "The point is located at: " << x << " , " << y << std::endl;
-	std::cout << "The point has size of : " << width << std::endl;*/
 }
 
 void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
@@ -89,12 +86,8 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		qgv->fitInView(line, Qt::KeepAspectRatio);
+		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
 
-
-		/*std::cout << "Added Item of type: Line" << std::endl;
-		std::cout << "The line's first point: " << x1 << " , " << y1 << std::endl;
-		std::cout << "The line's second point: " << x2 << " , " << y2 << std::endl;*/
 	}
 
 }
@@ -123,7 +116,7 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		font.setStyleHint(QFont::TypeWriter);
 		font.setPointSize(1);
 		qgti->setFont(font);
-		qgti->setRotation(-qRadiansToDegrees(textRotation));
+
 		qgti->setScale(scaleFactor);
 
 		int centerX = point.at(0).getHead().asNumber();
@@ -133,15 +126,23 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 
 		qgti->setPos(QPointF(centerX - (defaultWidth / 2), centerY - (defaultHeight / 2)));
 
+		if (-qRadiansToDegrees(textRotation) == -90) {
+			qgti->setTransformOriginPoint(defaultWidth /2, defaultHeight /2);
+			qgti->setRotation(-qRadiansToDegrees(textRotation));
+		}
+		else {
+			qgti->setRotation(-qRadiansToDegrees(textRotation));
+		}
+
 		qgs->addItem(qgti);
 
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-		qgv->fitInView(qgti, Qt::KeepAspectRatio);
+		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
 
 		/*std::cout << "Added Item of type: Text" << std::endl;
 		std::cout << "The text reads: " << temp << std::endl;
-		std::cout << "It is positioned at: " << centerX << " , " << centerY << std::endl;*/
+		qDebug() << "It is positioned at: " << qgti->pos() + qgti->boundingRect().center();*/
 	}
 
 
@@ -153,6 +154,10 @@ void OutputWidget::clear() {
 
 QGraphicsTextItem* OutputWidget::getTextItem() { 
 	return qgti; 
+}
+
+void OutputWidget::fitGraphToScreen() {
+	qgv->fitInView(-10, -10, 20, 20 ,Qt::KeepAspectRatio);
 }
 
 
