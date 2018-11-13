@@ -668,7 +668,7 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		}
 		else{
 			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
-			make_axis_point.push_back(Expression(-y_min*yscale));
+			make_axis_point.push_back(Expression(0));
 			axis_point = Expression(make_axis_point);
 		}
 
