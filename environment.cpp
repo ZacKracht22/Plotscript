@@ -655,9 +655,22 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		points.push_back(point);
 
 		std::vector<Expression> make_axis_point;
-		make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
-		make_axis_point.push_back(Expression(0));
-		Expression axis_point = Expression(make_axis_point);
+		Expression axis_point;
+		if (y_min > 0) {
+			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
+			make_axis_point.push_back(Expression(-y_min*yscale));
+			axis_point = Expression(make_axis_point);
+		}
+		else if (y_max < 0) {
+			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
+			make_axis_point.push_back(Expression(-y_max*yscale));
+			axis_point = Expression(make_axis_point);
+		}
+		else{
+			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
+			make_axis_point.push_back(Expression(-y_min*yscale));
+			axis_point = Expression(make_axis_point);
+		}
 
 		std::vector<Expression> make_line;
 		make_line.push_back(point);
@@ -728,9 +741,9 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		std::vector<Expression> make_middle_vertical_line_bottom;
 		std::vector<Expression> make_middle_vertical_line_top;
 		std::vector<Expression> make_middle_vertical_line;
-		make_middle_vertical_line_bottom.push_back(Expression(xmiddle*xscale));
+		make_middle_vertical_line_bottom.push_back(Expression(0));
 		make_middle_vertical_line_bottom.push_back(Expression((-ymiddle*yscale) + 10));
-		make_middle_vertical_line_top.push_back(Expression(xmiddle*xscale));
+		make_middle_vertical_line_top.push_back(Expression(0));
 		make_middle_vertical_line_top.push_back(Expression((-ymiddle*yscale) - 10));
 		make_middle_vertical_line.push_back(make_middle_vertical_line_bottom);
 		make_middle_vertical_line.push_back(make_middle_vertical_line_top);
@@ -745,9 +758,9 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		std::vector<Expression> make_middle_horizontal_line_right;
 		std::vector<Expression> make_middle_horizontal_line;
 		make_middle_horizontal_line_left.push_back(Expression((xmiddle*xscale) - 10));
-		make_middle_horizontal_line_left.push_back(Expression(-ymiddle*yscale));
+		make_middle_horizontal_line_left.push_back(Expression(0));
 		make_middle_horizontal_line_right.push_back(Expression((xmiddle*xscale) + 10));
-		make_middle_horizontal_line_right.push_back(Expression(-ymiddle*yscale));
+		make_middle_horizontal_line_right.push_back(Expression(0));
 		make_middle_horizontal_line.push_back(make_middle_horizontal_line_left);
 		make_middle_horizontal_line.push_back(make_middle_horizontal_line_right);
 		Expression middle_horizontal_line = Expression(make_middle_horizontal_line);
