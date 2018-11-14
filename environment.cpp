@@ -950,19 +950,66 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	double yscale = 20 / (y_max - y_min);
 	double ymiddle = (y_max + y_min) / 2;
 
-	std::cout << "Y min: " << y_min << std::endl;
+	/*std::cout << "Y min: " << y_min << std::endl;
 	std::cout << "Y max: " << y_max << std::endl;
 	std::cout << "Y scale: " << yscale << std::endl;
 	std::cout << "Y middle: " << ymiddle << std::endl;
 	std::cout << "X min: " << x_min << std::endl;
 	std::cout << "X max: " << x_max << std::endl;
 	std::cout << "X scale: " << xscale << std::endl;
-	std::cout << "X middle: " << xmiddle << std::endl;
+	std::cout << "X middle: " << xmiddle << std::endl;*/
 
 	for (std::size_t index = 0; index < points.size() - 1; index++) {
 		Expression line = makeLineFromPoints(points[index], points[index + 1], xscale, yscale);
 		ret.push_back(line);
 	}
+
+	for (int max10 = 0; max10 < 10; max10++) {
+		for (std::size_t z = 0; z < ret.size() - 1; z++) {
+
+			double point1x = ret.at(z).getTail().at(0).getTail().at(0).head().asNumber();
+			double point1y = ret.at(z).getTail().at(0).getTail().at(1).head().asNumber();
+			double point2x = ret.at(z).getTail().at(1).getTail().at(0).head().asNumber();
+			double point2y = ret.at(z).getTail().at(1).getTail().at(1).head().asNumber();
+			double point3x = ret.at(z+1).getTail().at(0).getTail().at(0).head().asNumber();
+			double point3y = ret.at(z+1).getTail().at(0).getTail().at(1).head().asNumber();
+			double point4x = ret.at(z+1).getTail().at(1).getTail().at(0).head().asNumber();
+			double point4y = ret.at(z+1).getTail().at(1).getTail().at(1).head().asNumber();
+
+			double slope1 = (point2y- point1y) / (point2x - point1x);
+			double slope2 = (point4y - point3y) / (point4x - point3x);
+
+			double angle = (std::atan(slope1) - std::atan(slope2))* 180 / std::atan2(0,-1);
+			if (angle < 90) {
+				angle = 180 - 2*angle;
+			}
+
+			if (angle < 175) {
+				Environment temp1(env);
+				temp1.add_exp(lambdaVariable.head(), Expression((point2x - point1x)/2.0000), true);
+				Expression tempExp1 = Expression(args.at(0).getTail()).eval(temp1);
+				Expression y_point1 = tempExp1.getTail().at(1);
+				std::vector<Expression> newPoint1Vec = { Expression((point2x - point1x) / 2.0000),y_point1};
+				Expression newPoint1 = Expression(newPoint1Vec);
+
+				Environment temp2(env);
+				temp2.add_exp(lambdaVariable.head(), Expression((point4x - point3x) / 2.0000), true);
+				Expression tempExp2 = Expression(args.at(0).getTail()).eval(temp2);
+				Expression y_point2 = tempExp2.getTail().at(1);
+				std::vector<Expression> newPoint2Vec = { Expression((point4x - point3x) / 2.0000),y_point2 };
+				Expression newPoint2 = Expression(newPoint1Vec);
+
+				Expression newLine = makeLineFromPoints(newPoint1, newPoint2, xscale, yscale);
+				
+				ret.insert(ret.begin() + z + 1, newLine);
+			
+			}
+			
+
+		}
+	}
+
+
 
 	std::vector<Expression> bottom_line_left;
 	std::vector<Expression> bottom_line_right;
