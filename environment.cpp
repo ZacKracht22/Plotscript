@@ -909,7 +909,7 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 
 	Expression func = args.at(0);
 	Expression bounds = args.at(1);
-	Expression options = args.at(2);
+
 
 	std::vector<Expression> ret;
 	std::vector<Expression> points;
@@ -950,6 +950,15 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	double yscale = 20 / (y_max - y_min);
 	double ymiddle = (y_max + y_min) / 2;
 
+	std::cout << "Y min: " << y_min << std::endl;
+	std::cout << "Y max: " << y_max << std::endl;
+	std::cout << "Y scale: " << yscale << std::endl;
+	std::cout << "Y middle: " << ymiddle << std::endl;
+	std::cout << "X min: " << x_min << std::endl;
+	std::cout << "X max: " << x_max << std::endl;
+	std::cout << "X scale: " << xscale << std::endl;
+	std::cout << "X middle: " << xmiddle << std::endl;
+
 	for (std::size_t index = 0; index < points.size() - 1; index++) {
 		Expression line = makeLineFromPoints(points[index], points[index + 1], xscale, yscale);
 		ret.push_back(line);
@@ -958,36 +967,36 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	std::vector<Expression> bottom_line_left;
 	std::vector<Expression> bottom_line_right;
 	bottom_line_left.push_back(Expression(x_min*xscale));
-	bottom_line_left.push_back(Expression(-y_min*yscale));
+	bottom_line_left.push_back(Expression(y_min*yscale));
 	bottom_line_right.push_back(Expression((x_min*xscale) + 20));
-	bottom_line_right.push_back(Expression(-y_min*yscale));
+	bottom_line_right.push_back(Expression(y_min*yscale));
 	Expression bottom_line = makeLineFromPoints(Expression(bottom_line_left), Expression(bottom_line_right), 1, 1);
 	ret.push_back(bottom_line);
 
 	std::vector<Expression> top_line_left;
 	std::vector<Expression> top_line_right;
 	top_line_left.push_back(Expression(x_min*xscale));
-	top_line_left.push_back(Expression(-y_max*yscale));
+	top_line_left.push_back(Expression(y_max*yscale));
 	top_line_right.push_back(Expression((x_min*xscale) + 20));
-	top_line_right.push_back(Expression(-y_max*yscale));
+	top_line_right.push_back(Expression(y_max*yscale));
 	Expression top_line = makeLineFromPoints(Expression(top_line_left), Expression(top_line_right), 1, 1);
 	ret.push_back(top_line);
 
 	std::vector<Expression> left_line_bottom;
 	std::vector<Expression> left_line_top;
 	left_line_bottom.push_back(Expression(x_min*xscale));
-	left_line_bottom.push_back(Expression(-y_min*yscale));
+	left_line_bottom.push_back(Expression(y_min*yscale));
 	left_line_top.push_back(Expression(x_min*xscale));
-	left_line_top.push_back(Expression((-y_min*yscale) - 20));
+	left_line_top.push_back(Expression((y_min*yscale) + 20));
 	Expression left_line = makeLineFromPoints(Expression(left_line_bottom), Expression(left_line_top), 1, 1);
 	ret.push_back(left_line);
 
 	std::vector<Expression> right_line_bottom;
 	std::vector<Expression> right_line_top;
 	right_line_bottom.push_back(Expression(x_max*xscale));
-	right_line_bottom.push_back(Expression(-y_min*yscale));
+	right_line_bottom.push_back(Expression(y_min*yscale));
 	right_line_top.push_back(Expression(x_max*xscale));
-	right_line_top.push_back(Expression((-y_min*yscale) - 20));
+	right_line_top.push_back(Expression((y_min*yscale) + 20));
 	Expression right_line = makeLineFromPoints(Expression(right_line_bottom), Expression(right_line_top), 1, 1);
 	ret.push_back(right_line);
 
@@ -995,9 +1004,9 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 		std::vector<Expression> middle_vertical_line_bottom;
 		std::vector<Expression> middle_vertical_line_top;
 		middle_vertical_line_bottom.push_back(Expression(0));
-		middle_vertical_line_bottom.push_back(Expression(-y_min*yscale));
+		middle_vertical_line_bottom.push_back(Expression(y_min*yscale));
 		middle_vertical_line_top.push_back(Expression(0));
-		middle_vertical_line_top.push_back(Expression(-y_max*yscale));
+		middle_vertical_line_top.push_back(Expression(y_max*yscale));
 		Expression middle_vertical_line = makeLineFromPoints(Expression(middle_vertical_line_bottom), Expression(middle_vertical_line_top), 1, 1);
 		ret.push_back(middle_vertical_line);
 	}
@@ -1030,34 +1039,38 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 
 	Expression textScale = Expression(1);
 
-	for (auto z : options.getTail()) {
-		if (z.getTail().at(0).head() == Atom("\"text-scale\"")) {
-			textScale = z.getTail().at(1);
-		}
-	}
+	if (args.size() == 3) {
+		Expression options = args.at(2);
 
-	for (auto o : options.getTail()) {
-		Expression text = o.getTail().at(1);
-		text.setProperty("\"object-name\"", TEXT);
+		for (auto z : options.getTail()) {
+			if (z.getTail().at(0).head() == Atom("\"text-scale\"")) {
+				textScale = z.getTail().at(1);
+			}
+		}
 
-		if (o.getTail().at(0).head() == Atom("\"title\"")) {
-			text.setProperty("\"position\"", titlepositionexp);
-			text.setProperty("\"text-scale\"", textScale);
-			text.setProperty("\"text-rotation\"", Expression(0));
-			ret.push_back(text);
-		}
-		else if (o.getTail().at(0).head() == Atom("\"abscissa-label\"")) {
-			text.setProperty("\"position\"", xlabelexp);
-			text.setProperty("\"text-scale\"", textScale);
-			text.setProperty("\"text-rotation\"", Expression(0));
-			ret.push_back(text);
-		}
-		else if (o.getTail().at(0).head() == Atom("\"ordinate-label\"")) {
-			text.setProperty("\"position\"", ylabelexp);
-			Expression rotate = Expression(std::atan2(0, -1) / 2);
-			text.setProperty("\"text-rotation\"", rotate);
-			text.setProperty("\"text-scale\"", textScale);
-			ret.push_back(text);
+		for (auto o : options.getTail()) {
+			Expression text = o.getTail().at(1);
+			text.setProperty("\"object-name\"", TEXT);
+
+			if (o.getTail().at(0).head() == Atom("\"title\"")) {
+				text.setProperty("\"position\"", titlepositionexp);
+				text.setProperty("\"text-scale\"", textScale);
+				text.setProperty("\"text-rotation\"", Expression(0));
+				ret.push_back(text);
+			}
+			else if (o.getTail().at(0).head() == Atom("\"abscissa-label\"")) {
+				text.setProperty("\"position\"", xlabelexp);
+				text.setProperty("\"text-scale\"", textScale);
+				text.setProperty("\"text-rotation\"", Expression(0));
+				ret.push_back(text);
+			}
+			else if (o.getTail().at(0).head() == Atom("\"ordinate-label\"")) {
+				text.setProperty("\"position\"", ylabelexp);
+				Expression rotate = Expression(std::atan2(0, -1) / 2);
+				text.setProperty("\"text-rotation\"", rotate);
+				text.setProperty("\"text-scale\"", textScale);
+				ret.push_back(text);
+			}
 		}
 	}
 
