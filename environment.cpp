@@ -612,6 +612,97 @@ Expression conj(const std::vector<Expression> & args) {
 	return Expression(result);
 };
 
+//Helper function that returns an expression containing a line made from point1 to point2 using the scaling values
+Expression makeLineFromPoints(const Expression& point1, const Expression& point2, double xscale, double yscale) {
+	const Expression THICKNESS(0);
+	const Expression LINE(Atom("\"line\""));
+
+	double point1x = point1.getTail().at(0).head().asNumber()*xscale;
+	double point1y = -point1.getTail().at(1).head().asNumber()*yscale;
+	double point2x = point2.getTail().at(0).head().asNumber()*xscale;
+	double point2y = -point2.getTail().at(1).head().asNumber()*yscale;
+
+	std::vector<Expression> make_line;
+	std::vector<Expression> point1Vec;
+	point1Vec.push_back(Expression(point1x));
+	point1Vec.push_back(Expression(point1y));
+	std::vector<Expression> point2Vec;
+	point2Vec.push_back(Expression(point2x));
+	point2Vec.push_back(Expression(point2y));
+	make_line.push_back(point1Vec);
+	make_line.push_back(point2Vec);
+	Expression line = Expression(make_line);
+	line.setProperty("\"object-name\"", LINE);
+	line.setProperty("\"thickness\"", THICKNESS);
+
+	return line;
+};
+
+//Function that takes in the return vector and min's, max's, and scales to add the graph's border lines to it
+void makeGraphBorder(std::vector<Expression>& ret, double x_min, double x_max, double y_min, double y_max, double xscale, double yscale) {
+	//Add lines for the boundaries of the graph
+	std::vector<Expression> bottom_line_left;
+	std::vector<Expression> bottom_line_right;
+	bottom_line_left.push_back(Expression(x_min*xscale));
+	bottom_line_left.push_back(Expression(y_min*yscale));
+	bottom_line_right.push_back(Expression((x_min*xscale) + 20));
+	bottom_line_right.push_back(Expression(y_min*yscale));
+	Expression bottom_line = makeLineFromPoints(Expression(bottom_line_left), Expression(bottom_line_right), 1, 1);
+	ret.push_back(bottom_line);
+
+	std::vector<Expression> top_line_left;
+	std::vector<Expression> top_line_right;
+	top_line_left.push_back(Expression(x_min*xscale));
+	top_line_left.push_back(Expression(y_max*yscale));
+	top_line_right.push_back(Expression((x_min*xscale) + 20));
+	top_line_right.push_back(Expression(y_max*yscale));
+	Expression top_line = makeLineFromPoints(Expression(top_line_left), Expression(top_line_right), 1, 1);
+	ret.push_back(top_line);
+
+	std::vector<Expression> left_line_bottom;
+	std::vector<Expression> left_line_top;
+	left_line_bottom.push_back(Expression(x_min*xscale));
+	left_line_bottom.push_back(Expression(y_min*yscale));
+	left_line_top.push_back(Expression(x_min*xscale));
+	left_line_top.push_back(Expression((y_min*yscale) + 20));
+	Expression left_line = makeLineFromPoints(Expression(left_line_bottom), Expression(left_line_top), 1, 1);
+	ret.push_back(left_line);
+
+	std::vector<Expression> right_line_bottom;
+	std::vector<Expression> right_line_top;
+	right_line_bottom.push_back(Expression(x_max*xscale));
+	right_line_bottom.push_back(Expression(y_min*yscale));
+	right_line_top.push_back(Expression(x_max*xscale));
+	right_line_top.push_back(Expression((y_min*yscale) + 20));
+	Expression right_line = makeLineFromPoints(Expression(right_line_bottom), Expression(right_line_top), 1, 1);
+	ret.push_back(right_line);
+
+	//Add axis lines if they are in the range of the graph
+	if (x_min < 0 && x_max > 0) {
+		std::vector<Expression> middle_vertical_line_bottom;
+		std::vector<Expression> middle_vertical_line_top;
+		middle_vertical_line_bottom.push_back(Expression(0));
+		middle_vertical_line_bottom.push_back(Expression(y_min*yscale));
+		middle_vertical_line_top.push_back(Expression(0));
+		middle_vertical_line_top.push_back(Expression(y_max*yscale));
+		Expression middle_vertical_line = makeLineFromPoints(Expression(middle_vertical_line_bottom), Expression(middle_vertical_line_top), 1, 1);
+		ret.push_back(middle_vertical_line);
+	}
+
+	if (y_min < 0 && y_max > 0) {
+		std::vector<Expression> middle_horizontal_line_left;
+		std::vector<Expression> middle_horizontal_line_right;
+		middle_horizontal_line_left.push_back(Expression(x_min*xscale));
+		middle_horizontal_line_left.push_back(Expression(0));
+		middle_horizontal_line_right.push_back(Expression(x_max*xscale));
+		middle_horizontal_line_right.push_back(Expression(0));
+		Expression middle_horizontal_line = makeLineFromPoints(Expression(middle_horizontal_line_left), Expression(middle_horizontal_line_right), 1, 1);
+		ret.push_back(middle_horizontal_line);
+	}
+
+};
+
+
 Expression discrete_plot(std::vector<Expression> & args) {
 	Expression SIZE(0.5);
 	Expression POINT(Atom("\"point\""));
@@ -629,6 +720,7 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	std::vector<Expression> ret;
 	std::vector<Expression> points;
 
+	//Calculate x and y bounds
 	for (auto d : data.getTail()) {
 		double x_point = d.getTail().at(0).head().asNumber();
 		double y_point = d.getTail().at(1).head().asNumber();
@@ -639,11 +731,13 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		if (y_point < y_min) y_min = y_point;
 	}
 
+	//Calculate x and y scales and mids
 	const double xscale = 20 / (x_max - x_min);
 	const double yscale = 20 / (y_max - y_min);
 	double xmiddle = (x_max + x_min) / 2;
 	double ymiddle = (y_max + y_min) / 2;
 
+	//Add each point from the data list
 	for (auto a : data.getTail()) {
 		std::vector<Expression> make_point;
 		make_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
@@ -655,16 +749,20 @@ Expression discrete_plot(std::vector<Expression> & args) {
 
 		std::vector<Expression> make_axis_point;
 		Expression axis_point;
+
+		//Draw line to min axis if  y = 0 is not present
 		if (y_min > 0) {
 			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
 			make_axis_point.push_back(Expression(-y_min*yscale));
 			axis_point = Expression(make_axis_point);
 		}
+		//Draw line to max axis if  y = 0 is not present
 		else if (y_max < 0) {
 			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
 			make_axis_point.push_back(Expression(-y_max*yscale));
 			axis_point = Expression(make_axis_point);
 		}
+		//Draw line to y axis if present
 		else{
 			make_axis_point.push_back(Expression(a.getTail().at(0).head().asNumber() * xscale));
 			make_axis_point.push_back(Expression(0));
@@ -680,94 +778,10 @@ Expression discrete_plot(std::vector<Expression> & args) {
 		ret.push_back(line);
 	}
 
-	std::vector<Expression> make_bottom_line_left;
-	std::vector<Expression> make_bottom_line_right;
-	std::vector<Expression> make_bottom_line;
-	make_bottom_line_left.push_back(Expression(x_min*xscale));
-	make_bottom_line_left.push_back(Expression(-y_min*yscale));
-	make_bottom_line_right.push_back(Expression((x_min*xscale) + 20));
-	make_bottom_line_right.push_back(Expression(-y_min*yscale));
-	make_bottom_line.push_back(make_bottom_line_left);
-	make_bottom_line.push_back(make_bottom_line_right);
-	Expression bottom_line = Expression(make_bottom_line);
-	bottom_line.setProperty("\"object-name\"", LINE);
-	bottom_line.setProperty("\"thickness\"", THICKNESS);
-	ret.push_back(bottom_line);
+	//Make the lines for the graph border
+	makeGraphBorder(ret, x_min, x_max, y_min, y_max, xscale, yscale);
 
-	std::vector<Expression> make_top_line_left;
-	std::vector<Expression> make_top_line_right;
-	std::vector<Expression> make_top_line;
-	make_top_line_left.push_back(Expression(x_min*xscale));
-	make_top_line_left.push_back(Expression(-y_max*yscale));
-	make_top_line_right.push_back(Expression((x_min*xscale) + 20));
-	make_top_line_right.push_back(Expression(-y_max*yscale));
-	make_top_line.push_back(make_top_line_left);
-	make_top_line.push_back(make_top_line_right);
-	Expression top_line = Expression(make_top_line);
-	top_line.setProperty("\"object-name\"", LINE);
-	top_line.setProperty("\"thickness\"", THICKNESS);
-	ret.push_back(top_line);
-
-	std::vector<Expression> make_left_line_bottom;
-	std::vector<Expression> make_left_line_top;
-	std::vector<Expression> make_left_line;
-	make_left_line_bottom.push_back(Expression(x_min*xscale));
-	make_left_line_bottom.push_back(Expression(-y_min*yscale));
-	make_left_line_top.push_back(Expression(x_min*xscale));
-	make_left_line_top.push_back(Expression((-y_min*yscale) - 20));
-	make_left_line.push_back(make_left_line_bottom);
-	make_left_line.push_back(make_left_line_top);
-	Expression left_line = Expression(make_left_line);
-	left_line.setProperty("\"object-name\"", LINE);
-	left_line.setProperty("\"thickness\"", THICKNESS);
-	ret.push_back(left_line);
-
-	std::vector<Expression> make_right_line_bottom;
-	std::vector<Expression> make_right_line_top;
-	std::vector<Expression> make_right_line;
-	make_right_line_bottom.push_back(Expression(x_max*xscale));
-	make_right_line_bottom.push_back(Expression(-y_min*yscale));
-	make_right_line_top.push_back(Expression(x_max*xscale));
-	make_right_line_top.push_back(Expression((-y_min*yscale) - 20));
-	make_right_line.push_back(make_right_line_bottom);
-	make_right_line.push_back(make_right_line_top);
-	Expression right_line = Expression(make_right_line);
-	right_line.setProperty("\"object-name\"", LINE);
-	right_line.setProperty("\"thickness\"", THICKNESS);
-	ret.push_back(right_line);
-
-	if (x_min < 0 && x_max > 0) {
-		std::vector<Expression> make_middle_vertical_line_bottom;
-		std::vector<Expression> make_middle_vertical_line_top;
-		std::vector<Expression> make_middle_vertical_line;
-		make_middle_vertical_line_bottom.push_back(Expression(0));
-		make_middle_vertical_line_bottom.push_back(Expression(-y_min*yscale));
-		make_middle_vertical_line_top.push_back(Expression(0));
-		make_middle_vertical_line_top.push_back(Expression(-y_max*yscale));
-		make_middle_vertical_line.push_back(make_middle_vertical_line_bottom);
-		make_middle_vertical_line.push_back(make_middle_vertical_line_top);
-		Expression middle_vertical_line = Expression(make_middle_vertical_line);
-		middle_vertical_line.setProperty("\"object-name\"", LINE);
-		middle_vertical_line.setProperty("\"thickness\"", THICKNESS);
-		ret.push_back(middle_vertical_line);
-	}
-
-	if (y_min < 0 && y_max > 0) {
-		std::vector<Expression> make_middle_horizontal_line_left;
-		std::vector<Expression> make_middle_horizontal_line_right;
-		std::vector<Expression> make_middle_horizontal_line;
-		make_middle_horizontal_line_left.push_back(Expression(x_min*xscale));
-		make_middle_horizontal_line_left.push_back(Expression(0));
-		make_middle_horizontal_line_right.push_back(Expression(x_max*xscale));
-		make_middle_horizontal_line_right.push_back(Expression(0));
-		make_middle_horizontal_line.push_back(make_middle_horizontal_line_left);
-		make_middle_horizontal_line.push_back(make_middle_horizontal_line_right);
-		Expression middle_horizontal_line = Expression(make_middle_horizontal_line);
-		middle_horizontal_line.setProperty("\"object-name\"", LINE);
-		middle_horizontal_line.setProperty("\"thickness\"", THICKNESS);
-		ret.push_back(middle_horizontal_line);
-	}
-
+	//Add all the points to the return vector
 	for (auto p : points) {
 		ret.push_back(p);
 	}
@@ -788,13 +802,14 @@ Expression discrete_plot(std::vector<Expression> & args) {
 	Expression ylabelexp = Expression(ylabel);
 
 	Expression textScale = Expression(1);
-
+	//Check if a new scale is given
 	for (auto z : options.getTail()) {
 		if (z.getTail().at(0).head() == Atom("\"text-scale\"")) {
 			textScale = z.getTail().at(1);
 		}
 	}
 
+	//Find the options
 	for (auto o : options.getTail()) {
 		Expression text = o.getTail().at(1);
 		text.setProperty("\"object-name\"", TEXT);
@@ -877,35 +892,80 @@ Expression discrete_plot(std::vector<Expression> & args) {
 };
 
 
-Expression makeLineFromPoints(const Expression& point1, const Expression& point2, double xscale, double yscale) {
-	const Expression THICKNESS(0);
-	const Expression LINE(Atom("\"line\""));
+//Algorithm to split lines who's angle is less than 175 degrees to smooth the plot
+void recursiveLineSplitAlgorithm(std::vector<Expression>& ret, double xscale, double yscale, std::size_t z /*index*/) {
+	float point1x = ret.at(z).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
+	float point1y = -ret.at(z).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
+	float point2x = ret.at(z).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
+	float point2y = -ret.at(z).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
 
-	double point1x = point1.getTail().at(0).head().asNumber()*xscale;
-	double point1y = -point1.getTail().at(1).head().asNumber()*yscale;
-	double point2x = point2.getTail().at(0).head().asNumber()*xscale;
-	double point2y = -point2.getTail().at(1).head().asNumber()*yscale;
+	float point3x = ret.at(z + 1).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
+	float point3y = -ret.at(z + 1).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
+	float point4x = ret.at(z + 1).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
+	float point4y = -ret.at(z + 1).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
 
-	std::vector<Expression> make_line;
-	std::vector<Expression> point1Vec;
-	point1Vec.push_back(Expression(point1x));
-	point1Vec.push_back(Expression(point1y));
-	std::vector<Expression> point2Vec;
-	point2Vec.push_back(Expression(point2x));
-	point2Vec.push_back(Expression(point2y));
-	make_line.push_back(point1Vec);
-	make_line.push_back(point2Vec);
-	Expression line = Expression(make_line);
-	line.setProperty("\"object-name\"", LINE);
-	line.setProperty("\"thickness\"", THICKNESS);
+	double slope1 = (point2y - point1y) / (point2x - point1x);
+	double slope2 = (point4y - point3y) / (point4x - point3x);
 
-	return line;
+	//Calculate the angle from the two slopes
+	double angle = (std::atan(slope1) - std::atan(slope2)) * 180 / std::atan2(0, -1);
+
+	//Update the angle if the wrong angle is found
+	if (abs(angle) < 90) {
+		angle = 180 - abs(angle);
+	}
+
+	if (angle < 175) {
+		//Calculate 3 new lines
+		Expression newPoint1X = Expression(point1x);
+		Expression newPoint1Y = Expression(point1y);
+		std::vector<Expression> newPoint1Vec;
+		newPoint1Vec.push_back(newPoint1X);
+		newPoint1Vec.push_back(newPoint1Y);
+		Expression newPoint1 = Expression(newPoint1Vec);
+
+		Expression newPoint2X = Expression((point2x + point1x) / 2.000);
+		Expression newPoint2Y = Expression((point2y + point1y) / 2.000);
+		std::vector<Expression> newPoint2Vec;
+		newPoint2Vec.push_back(newPoint2X);
+		newPoint2Vec.push_back(newPoint2Y);
+		Expression newPoint2 = Expression(newPoint2Vec);
+
+		Expression newPoint3X = Expression((point4x + point3x) / 2.000);
+		Expression newPoint3Y = Expression((point4y + point3y) / 2.000);
+		std::vector<Expression> newPoint3Vec;
+		newPoint3Vec.push_back(newPoint3X);
+		newPoint3Vec.push_back(newPoint3Y);
+		Expression newPoint3 = Expression(newPoint3Vec);
+
+		Expression newPoint4X = Expression(point4x);
+		Expression newPoint4Y = Expression(point4y);
+		std::vector<Expression> newPoint4Vec;
+		newPoint4Vec.push_back(newPoint4X);
+		newPoint4Vec.push_back(newPoint4Y);
+		Expression newPoint4 = Expression(newPoint4Vec);
+
+		//Make new lines
+		Expression newLineLeft = makeLineFromPoints(newPoint1, newPoint2, xscale, yscale);
+
+		Expression newLineMiddle = makeLineFromPoints(newPoint2, newPoint3, xscale, yscale);
+
+		Expression newLineRight = makeLineFromPoints(newPoint3, newPoint4, xscale, yscale);
+
+		//Erase the old lines and replace with new split slines
+		ret.erase(ret.begin() + z);
+		ret.erase(ret.begin() + z);
+		ret.insert(ret.begin() + z, newLineLeft);
+		ret.insert(ret.begin() + z + 1, newLineMiddle);
+		ret.insert(ret.begin() + z + 2, newLineRight);
+	}
+
 };
 
 
-
+//Function returns a list of lines and texts to create a continuous plot
 Expression continuous_plot(const std::vector<Expression> & args, Environment & env) {
-	Expression TEXT(Atom("\"text\""));
+	const Expression TEXT(Atom("\"text\""));
 
 	Expression func = args.at(0);
 	Expression bounds = args.at(1);
@@ -914,6 +974,7 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	std::vector<Expression> ret;
 	std::vector<Expression> points;
 
+	//Get the x bounds from second list and calculate the scale/middle
 	double x_min = bounds.getTail().at(0).head().asNumber();
 	double x_max = bounds.getTail().at(1).head().asNumber();
 	double pointSpacing = (x_max - x_min) / 50;
@@ -925,7 +986,7 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 
 	Expression lambdaFunc = func.getTail().at(1);
 
-
+	//Begin by adding 51 points to a vector of points
 	for (double i = x_min; i <= (x_max + pointSpacing); i += pointSpacing) {
 	
 		Environment temp(env);
@@ -941,6 +1002,7 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	double y_min = 1000000;
 	double y_max = -1000000;
 
+	//Use the present points to determine the y bounds, then calculate scale and middle
 	for (auto a : points) {
 		double y = a.getTail().at(1).head().asNumber();
 		if (y > y_max) y_max = y;
@@ -950,180 +1012,25 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 	double yscale = 20 / (y_max - y_min);
 	double ymiddle = (y_max + y_min) / 2;
 
-	/*std::cout << "Y min: " << y_min << std::endl;
-	std::cout << "Y max: " << y_max << std::endl;
-	std::cout << "Y scale: " << yscale << std::endl;
-	std::cout << "Y middle: " << ymiddle << std::endl;
-	std::cout << "X min: " << x_min << std::endl;
-	std::cout << "X max: " << x_max << std::endl;
-	std::cout << "X scale: " << xscale << std::endl;
-	std::cout << "X middle: " << xmiddle << std::endl;*/
-
+	//Make 50 lines fromm the initial 51 points
 	for (std::size_t index = 0; index < points.size() - 1; index++) {
 		Expression line = makeLineFromPoints(points[index], points[index + 1], xscale, yscale);
 		ret.push_back(line);
 	}
 
-
+	// Run line split checking 10 times
 	for (int max10 = 0; max10 < 10; max10++) {
 		std::size_t size = ret.size();
+		//Run through graph searching for angles <175 in algorithm
 		for (std::size_t z = 0; z < size - 1; z++) {
-
-			float point1x = ret.at(z).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
-			float point1y = -ret.at(z).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
-			float point2x = ret.at(z).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
-			float point2y = -ret.at(z).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
-
-			float point3x = ret.at(z+1).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
-			float point3y = -ret.at(z+1).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
-			float point4x = ret.at(z+1).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
-			float point4y = -ret.at(z+1).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
-
-			double slope1 = (point2y- point1y) / (point2x - point1x);
-			double slope2 = (point4y - point3y) / (point4x - point3x);
-
-			double angle = (std::atan(slope1) - std::atan(slope2))* 180 / std::atan2(0,-1);
-/*
-			double dotabtoac = ((point2x-point1x) * (point4x-point1x) + (point2y-point2y) * (point4y-point1y));
-			double lengthab = sqrt((point2x - point1x) * (point2x - point1x) + (point2y - point2y) * (point2y - point2y));
-			double lengthac = sqrt((point4x - point1x) * (point4x - point1x) + (point4y - point1y));
-			double dacos = dotabtoac / lengthab / lengthac;
-			double angle = std::acos(dacos) * 180 / std::atan2(0, -1);
-
-			float angle1 = atan2((point2y-point1y), (point2x - point1x));
-			float angle2 = atan2((point4y - point3y), (point4x - point3x));
-			float diff = angle1 - angle2;
-			float angle = (diff * 180) / std::atan2(0,-1);*/
-
-			//std::cout << angle << std::endl;
-			
-			if (abs(angle) < 90) {
-				angle = 180 - abs(angle);
-				//std::cout << "Angle changed: " << angle << std::endl;
-			}
-			
-			if (angle < 175) {
-		    //std::cout << "yes" << "\n" << std::endl;
-				//std::cout << "Splitting lines!" << std::endl;
-				//std::cout << "line 1: " << point1x << "," << point1y << " to " << point2x << "," << point2y << std::endl;
-				//std::cout << "line 2: " << point3x << "," << point3y << " to " << point4x << "," << point4y << std::endl;
-
-				Expression newPoint1X = Expression(point1x);
-				Expression newPoint1Y = Expression(point1y);
-				std::vector<Expression> newPoint1Vec;
-				newPoint1Vec.push_back(newPoint1X);
-				newPoint1Vec.push_back(newPoint1Y);
-				Expression newPoint1 = Expression(newPoint1Vec);
-
-				Expression newPoint2X = Expression((point2x + point1x) / 2.000);
-				Expression newPoint2Y = Expression((point2y + point1y) / 2.000);
-				std::vector<Expression> newPoint2Vec;
-				newPoint2Vec.push_back(newPoint2X);
-				newPoint2Vec.push_back(newPoint2Y);
-				Expression newPoint2 = Expression(newPoint2Vec);
-
-				Expression newPoint3X = Expression((point4x + point3x) / 2.000);
-				Expression newPoint3Y = Expression((point4y + point3y) / 2.000);
-				std::vector<Expression> newPoint3Vec;
-				newPoint3Vec.push_back(newPoint3X);
-				newPoint3Vec.push_back(newPoint3Y);
-				Expression newPoint3 = Expression(newPoint3Vec);
-
-				Expression newPoint4X = Expression(point4x);
-				Expression newPoint4Y = Expression(point4y);
-				std::vector<Expression> newPoint4Vec;
-				newPoint4Vec.push_back(newPoint4X);
-				newPoint4Vec.push_back(newPoint4Y);
-				Expression newPoint4 = Expression(newPoint4Vec);
-
-				//std::cout << newPoint1 << std::endl;
-				//std::cout << newPoint2 << std::endl;
-				//std::cout << newPoint3 << std::endl;
-				//std::cout << newPoint4 << "\n" << std::endl;
-
-
-				Expression newLineLeft = makeLineFromPoints(newPoint1, newPoint2, xscale, yscale);
-
-				Expression newLineMiddle = makeLineFromPoints(newPoint2, newPoint3, xscale, yscale);
-
-				Expression newLineRight = makeLineFromPoints(newPoint3, newPoint4, xscale, yscale);
-
-				//std::cout << "New lines!" << std::endl;
-				//std::cout << "line 1: " << newLineLeft << std::endl;
-				//std::cout << "line 2: " << newLineMiddle << std::endl;
-				//std::cout << "line 3: " << newLineRight << "\n" << std::endl;
-
-				ret.erase(ret.begin() + z);
-				ret.erase(ret.begin() + z);
-				ret.insert(ret.begin() + z, newLineLeft);
-				ret.insert(ret.begin() + z + 1, newLineMiddle);
-				ret.insert(ret.begin() + z + 2, newLineRight);
-			}
-			
-
+			recursiveLineSplitAlgorithm(ret, xscale, yscale, z);
 		}
 	}
 
+	//Make graph's border points
+	makeGraphBorder(ret, x_min, x_max, y_min, y_max, xscale, yscale);
 
-
-	std::vector<Expression> bottom_line_left;
-	std::vector<Expression> bottom_line_right;
-	bottom_line_left.push_back(Expression(x_min*xscale));
-	bottom_line_left.push_back(Expression(y_min*yscale));
-	bottom_line_right.push_back(Expression((x_min*xscale) + 20));
-	bottom_line_right.push_back(Expression(y_min*yscale));
-	Expression bottom_line = makeLineFromPoints(Expression(bottom_line_left), Expression(bottom_line_right), 1, 1);
-	ret.push_back(bottom_line);
-
-	std::vector<Expression> top_line_left;
-	std::vector<Expression> top_line_right;
-	top_line_left.push_back(Expression(x_min*xscale));
-	top_line_left.push_back(Expression(y_max*yscale));
-	top_line_right.push_back(Expression((x_min*xscale) + 20));
-	top_line_right.push_back(Expression(y_max*yscale));
-	Expression top_line = makeLineFromPoints(Expression(top_line_left), Expression(top_line_right), 1, 1);
-	ret.push_back(top_line);
-
-	std::vector<Expression> left_line_bottom;
-	std::vector<Expression> left_line_top;
-	left_line_bottom.push_back(Expression(x_min*xscale));
-	left_line_bottom.push_back(Expression(y_min*yscale));
-	left_line_top.push_back(Expression(x_min*xscale));
-	left_line_top.push_back(Expression((y_min*yscale) + 20));
-	Expression left_line = makeLineFromPoints(Expression(left_line_bottom), Expression(left_line_top), 1, 1);
-	ret.push_back(left_line);
-
-	std::vector<Expression> right_line_bottom;
-	std::vector<Expression> right_line_top;
-	right_line_bottom.push_back(Expression(x_max*xscale));
-	right_line_bottom.push_back(Expression(y_min*yscale));
-	right_line_top.push_back(Expression(x_max*xscale));
-	right_line_top.push_back(Expression((y_min*yscale) + 20));
-	Expression right_line = makeLineFromPoints(Expression(right_line_bottom), Expression(right_line_top), 1, 1);
-	ret.push_back(right_line);
-
-	if (x_min < 0 && x_max > 0) {
-		std::vector<Expression> middle_vertical_line_bottom;
-		std::vector<Expression> middle_vertical_line_top;
-		middle_vertical_line_bottom.push_back(Expression(0));
-		middle_vertical_line_bottom.push_back(Expression(y_min*yscale));
-		middle_vertical_line_top.push_back(Expression(0));
-		middle_vertical_line_top.push_back(Expression(y_max*yscale));
-		Expression middle_vertical_line = makeLineFromPoints(Expression(middle_vertical_line_bottom), Expression(middle_vertical_line_top), 1, 1);
-		ret.push_back(middle_vertical_line);
-	}
-
-	if (y_min < 0 && y_max > 0) {
-		std::vector<Expression> middle_horizontal_line_left;
-		std::vector<Expression> middle_horizontal_line_right;
-		middle_horizontal_line_left.push_back(Expression(x_min*xscale));
-		middle_horizontal_line_left.push_back(Expression(0));
-		middle_horizontal_line_right.push_back(Expression(x_max*xscale));
-		middle_horizontal_line_right.push_back(Expression(0));
-		Expression middle_horizontal_line = makeLineFromPoints(Expression(middle_horizontal_line_left), Expression(middle_horizontal_line_right), 1, 1);
-		ret.push_back(middle_horizontal_line);
-	}
-
+	//Add the necessary labels
 	std::vector<Expression> titleposition;
 	titleposition.push_back(Expression(xmiddle*xscale));
 	titleposition.push_back(Expression(-y_max*yscale - 3));
