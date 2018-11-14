@@ -295,10 +295,12 @@ TEST_CASE( "Test some semantically invalid expresions", "[interpreter]" ) {
 		"(begin)",
 		"(define 1 1)",
 		"(lambda (x y))",
+		"(begin (define f lambda (x) (x)) (f 3 3))",
+		"(begin)",
 						  "(conj I I I)" };//cant call conj with multiple arguments
     for(auto s : programs){
       Interpreter interp;
-
+	  INFO(s);
       std::istringstream iss(s);
       
       bool ok = interp.parseStream(iss);
@@ -1392,6 +1394,25 @@ TEST_CASE("get back to 98 percent", "[interpreter]") {
 		REQUIRE(exp.isHeadNone());
 	}
 
+	{
+		Expression exp(1);
+		REQUIRE(expString(exp) == "(1)");
+	}
+
+	{
+		Expression exp;
+		REQUIRE(expString(exp) == "NONE");
+	}
+
+	{
+		Expression exp1(1);
+		Expression exp2(2);
+		std::vector<Expression> vec;
+		vec.push_back(exp1);
+		vec.push_back(exp2);
+		Expression exp = Expression(vec);
+		REQUIRE(expString(exp) == "((1) (2))");
+	}
 
 
 
@@ -1409,7 +1430,6 @@ TEST_CASE("Testing discrete-plot", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		REQUIRE(result.getTail().size() == 17);
-		REQUIRE(result.head() == Atom("discrete"));
 	}
 
 	{
@@ -1422,7 +1442,36 @@ TEST_CASE("Testing discrete-plot", "[interpreter]") {
 		INFO(program);
 		Expression result = run(program);
 		REQUIRE(result.getTail().size() == 16);
-		REQUIRE(result.head() == Atom("discrete"));
+	}
+}
+
+TEST_CASE("Testing continuous-plot", "[interpreter]") {
+
+	{
+		std::string program = R"(
+	(begin 
+	(define f (lambda (x) (+ x 0)))
+	(continuous-plot f (list -1 1) 
+	(list (list "title" "A continuous linear function") 
+	(list "abscissa-label" "x") 
+	(list "ordinate-label" "y") )))
+	)";
+		INFO(program);
+		Expression result = run(program);
+		REQUIRE(result.getTail().size() == 63);
+	}
+
+	{
+		std::string program = R"(
+	(begin 
+	(define f (lambda (x) (sin x)))
+	(continuous-plot f (list (- pi) pi) 
+	(list (list "title" "A continuous linear function") 
+	(list "abscissa-label" "x") 
+	(list "ordinate-label" "y") )))
+	)";	INFO(program);
+		Expression result = run(program);
+		REQUIRE(result.getTail().size() == 75);
 	}
 
 

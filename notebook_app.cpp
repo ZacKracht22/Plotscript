@@ -72,7 +72,7 @@ void NotebookApp::NewInterpret() {
 				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
 					output->outputText(exp, true);
 				}
-				else if (exp.getHead().asSymbol() == "list") {
+				else if (exp.head().asSymbol() == "list") {
 					output->clear();
 					std::vector<Expression> list = exp.getTail();
 					recursiveListInterpret(list);

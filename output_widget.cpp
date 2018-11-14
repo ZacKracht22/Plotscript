@@ -38,11 +38,11 @@ void OutputWidget::outputExpression(QString input) {
 void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 	if(clearFlag) clear();
 
-	qreal width = exp.getProperty("\"size\"").getHead().asNumber();
+	qreal width = exp.getProperty("\"size\"").head().asNumber();
 	qreal height = width;
-	qreal x = exp.getTail().at(0).getHead().asNumber();
+	qreal x = exp.getTail().at(0).head().asNumber();
 	x = x - (width / 2);
-	qreal y = exp.getTail().at(1).getHead().asNumber();
+	qreal y = exp.getTail().at(1).head().asNumber();
 	y = y - (width / 2);
 
 	if (width < 0) {
@@ -63,20 +63,18 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 }
 
 void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
-	//static int count = 0;
-
 	if (clearFlag) clear();
 
-	int thickness = exp.getProperty("\"thickness\"").getHead().asNumber();
+	int thickness = exp.getProperty("\"thickness\"").head().asNumber();
 
 	if (thickness < 0) {
 		outputExpression(QString::fromStdString("Error: line thickness cannot be negative"));
 	}
 	else {
-		qreal x1 = exp.getTail().at(0).getTail().at(0).getHead().asNumber();
-		qreal x2 = exp.getTail().at(1).getTail().at(0).getHead().asNumber();
-		qreal y1 = exp.getTail().at(0).getTail().at(1).getHead().asNumber();
-		qreal y2 = exp.getTail().at(1).getTail().at(1).getHead().asNumber();
+		qreal x1 = exp.getTail().at(0).getTail().at(0).head().asNumber();
+		qreal x2 = exp.getTail().at(1).getTail().at(0).head().asNumber();
+		qreal y1 = exp.getTail().at(0).getTail().at(1).head().asNumber();
+		qreal y2 = exp.getTail().at(1).getTail().at(1).head().asNumber();
 
 		QGraphicsLineItem* line = new QGraphicsLineItem(x1, y1, x2, y2);
 
@@ -89,13 +87,6 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
-
-		//count++;
-		//qDebug() << "Count is now: " << count;
-
-		/*qDebug() << "Adding line";
-		qDebug() << "Line has first point of " << x1 << "," << y1;
-		qDebug() << "Line has second point of " << x2 << "," << y2;*/
 	}
 
 }
@@ -104,21 +95,21 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 	if(clearFlag) clear();
 
-	Atom shouldBeList = exp.getProperty("\"position\"").getHead();
+	Atom shouldBeList = exp.getProperty("\"position\"").head();
 	std::vector<Expression> point = exp.getProperty("\"position\"").getTail();
 
 	if (shouldBeList != Atom("list") || point.size() != 2) {
 		outputExpression(QString::fromStdString("Error: position must be a point"));
 	}
 	else {
-		std::string temp = exp.getHead().asString();
+		std::string temp = exp.head().asString();
 		temp.erase(0, 1);
 		temp.erase(temp.length() - 1, 1);
 		QString text = QString::fromStdString(temp);
 		qgti = new QGraphicsTextItem(text);
 
-		double scaleFactor = exp.getProperty("\"text-scale\"").getHead().asNumber();
-		double textRotation = exp.getProperty("\"text-rotation\"").getHead().asNumber();
+		double scaleFactor = exp.getProperty("\"text-scale\"").head().asNumber();
+		double textRotation = exp.getProperty("\"text-rotation\"").head().asNumber();
 
 		auto font = QFont("Monospace");
 		font.setStyleHint(QFont::TypeWriter);
@@ -126,8 +117,8 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgti->setFont(font);
 		qgti->setScale(scaleFactor);
 
-		double centerX = point.at(0).getHead().asNumber();
-		double centerY = point.at(1).getHead().asNumber();
+		double centerX = point.at(0).head().asNumber();
+		double centerY = point.at(1).head().asNumber();
 		qreal defaultWidth = qgti->boundingRect().width();
 		qreal defaultHeight = qgti->boundingRect().height();
 
@@ -146,9 +137,6 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
-
-		//qDebug() << "Text: " << text;
-		//qDebug() << "Location: " << centerX << "," << centerY;
 
 	}
 

@@ -453,7 +453,6 @@ void NotebookTest::testDiscretePlotLayout() {
 }
 
 void NotebookTest::testContinuousPlotLayout() {
-	static int count = 0;
 	std::string program = R"(
 	(begin 
 	(define f (lambda (x) (+ x 0)))
@@ -471,20 +470,12 @@ void NotebookTest::testContinuousPlotLayout() {
 
 	auto scene = view->scene();
 
-	// first check total number of items
-	// 8 lines + 2 points + 7 text = 17
 	auto items = scene->items();
 	QCOMPARE(items.size(), 63);
 
 	// make them all selectable
 	foreach(auto item, items) {
 		item->setFlag(QGraphicsItem::ItemIsSelectable);
-		count++;
-		/*std::cout << "Item number: " << count << std::endl;
-		std::cout << "x: " << item->pos().x() << std::endl;
-		std::cout << "y: " << item->pos().y() << std::endl;
-		std::cout << "width: " << item->boundingRect().width() << std::endl;
-		std::cout << "height: " << item->boundingRect().height() << "\n" << std::endl;*/
 	}
 
 	double scalex = 20.0 / 2.0;

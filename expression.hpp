@@ -49,13 +49,8 @@ public:
   /// return a reference to the head Atom
   Atom & head();
 
-  /// return the head atom
-  Atom getHead();
-
   /// return a const-reference to the head Atom
   const Atom & head() const;
-
-  void changeHead(const Atom& newHead);
 
   /// append Atom to tail of the expression
   void append(const Atom & a);
