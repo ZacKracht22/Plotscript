@@ -119,11 +119,10 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		font.setStyleHint(QFont::TypeWriter);
 		font.setPointSize(1);
 		qgti->setFont(font);
-
 		qgti->setScale(scaleFactor);
 
-		int centerX = point.at(0).getHead().asNumber();
-		int centerY = point.at(1).getHead().asNumber();
+		double centerX = point.at(0).getHead().asNumber();
+		double centerY = point.at(1).getHead().asNumber();
 		qreal defaultWidth = qgti->boundingRect().width();
 		qreal defaultHeight = qgti->boundingRect().height();
 
@@ -142,6 +141,9 @@ void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
+
+		//qDebug() << "Text: " << text;
+		//qDebug() << "Location: " << centerX << "," << centerY;
 
 	}
 
