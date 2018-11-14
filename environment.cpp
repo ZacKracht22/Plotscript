@@ -964,45 +964,100 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 		ret.push_back(line);
 	}
 
-	for (int max10 = 0; max10 < 10; max10++) {
-		for (std::size_t z = 0; z < ret.size() - 1; z++) {
 
-			double point1x = ret.at(z).getTail().at(0).getTail().at(0).head().asNumber();
-			double point1y = ret.at(z).getTail().at(0).getTail().at(1).head().asNumber();
-			double point2x = ret.at(z).getTail().at(1).getTail().at(0).head().asNumber();
-			double point2y = ret.at(z).getTail().at(1).getTail().at(1).head().asNumber();
-			double point3x = ret.at(z+1).getTail().at(0).getTail().at(0).head().asNumber();
-			double point3y = ret.at(z+1).getTail().at(0).getTail().at(1).head().asNumber();
-			double point4x = ret.at(z+1).getTail().at(1).getTail().at(0).head().asNumber();
-			double point4y = ret.at(z+1).getTail().at(1).getTail().at(1).head().asNumber();
+	for (int max10 = 0; max10 < 10; max10++) {
+		std::size_t size = ret.size();
+		for (std::size_t z = 0; z < size - 1; z++) {
+
+			float point1x = ret.at(z).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
+			float point1y = -ret.at(z).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
+			float point2x = ret.at(z).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
+			float point2y = -ret.at(z).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
+
+			float point3x = ret.at(z+1).getTail().at(0).getTail().at(0).head().asNumber() / xscale;
+			float point3y = -ret.at(z+1).getTail().at(0).getTail().at(1).head().asNumber() / yscale;
+			float point4x = ret.at(z+1).getTail().at(1).getTail().at(0).head().asNumber() / xscale;
+			float point4y = -ret.at(z+1).getTail().at(1).getTail().at(1).head().asNumber() / yscale;
 
 			double slope1 = (point2y- point1y) / (point2x - point1x);
 			double slope2 = (point4y - point3y) / (point4x - point3x);
 
 			double angle = (std::atan(slope1) - std::atan(slope2))* 180 / std::atan2(0,-1);
-			if (angle < 90) {
-				angle = 180 - 2*angle;
-			}
+/*
+			double dotabtoac = ((point2x-point1x) * (point4x-point1x) + (point2y-point2y) * (point4y-point1y));
+			double lengthab = sqrt((point2x - point1x) * (point2x - point1x) + (point2y - point2y) * (point2y - point2y));
+			double lengthac = sqrt((point4x - point1x) * (point4x - point1x) + (point4y - point1y));
+			double dacos = dotabtoac / lengthab / lengthac;
+			double angle = std::acos(dacos) * 180 / std::atan2(0, -1);
 
+			float angle1 = atan2((point2y-point1y), (point2x - point1x));
+			float angle2 = atan2((point4y - point3y), (point4x - point3x));
+			float diff = angle1 - angle2;
+			float angle = (diff * 180) / std::atan2(0,-1);*/
+
+			//std::cout << angle << std::endl;
+			
+			if (abs(angle) < 90) {
+				angle = 180 - abs(angle);
+				//std::cout << "Angle changed: " << angle << std::endl;
+			}
+			
 			if (angle < 175) {
-				Environment temp1(env);
-				temp1.add_exp(lambdaVariable.head(), Expression((point2x - point1x)/2.0000), true);
-				Expression tempExp1 = Expression(args.at(0).getTail()).eval(temp1);
-				Expression y_point1 = tempExp1.getTail().at(1);
-				std::vector<Expression> newPoint1Vec = { Expression((point2x - point1x) / 2.0000),y_point1};
+		    //std::cout << "yes" << "\n" << std::endl;
+				//std::cout << "Splitting lines!" << std::endl;
+				//std::cout << "line 1: " << point1x << "," << point1y << " to " << point2x << "," << point2y << std::endl;
+				//std::cout << "line 2: " << point3x << "," << point3y << " to " << point4x << "," << point4y << std::endl;
+
+				Expression newPoint1X = Expression(point1x);
+				Expression newPoint1Y = Expression(point1y);
+				std::vector<Expression> newPoint1Vec;
+				newPoint1Vec.push_back(newPoint1X);
+				newPoint1Vec.push_back(newPoint1Y);
 				Expression newPoint1 = Expression(newPoint1Vec);
 
-				Environment temp2(env);
-				temp2.add_exp(lambdaVariable.head(), Expression((point4x - point3x) / 2.0000), true);
-				Expression tempExp2 = Expression(args.at(0).getTail()).eval(temp2);
-				Expression y_point2 = tempExp2.getTail().at(1);
-				std::vector<Expression> newPoint2Vec = { Expression((point4x - point3x) / 2.0000),y_point2 };
-				Expression newPoint2 = Expression(newPoint1Vec);
+				Expression newPoint2X = Expression((point2x + point1x) / 2.000);
+				Expression newPoint2Y = Expression((point2y + point1y) / 2.000);
+				std::vector<Expression> newPoint2Vec;
+				newPoint2Vec.push_back(newPoint2X);
+				newPoint2Vec.push_back(newPoint2Y);
+				Expression newPoint2 = Expression(newPoint2Vec);
 
-				Expression newLine = makeLineFromPoints(newPoint1, newPoint2, xscale, yscale);
-				
-				ret.insert(ret.begin() + z + 1, newLine);
-			
+				Expression newPoint3X = Expression((point4x + point3x) / 2.000);
+				Expression newPoint3Y = Expression((point4y + point3y) / 2.000);
+				std::vector<Expression> newPoint3Vec;
+				newPoint3Vec.push_back(newPoint3X);
+				newPoint3Vec.push_back(newPoint3Y);
+				Expression newPoint3 = Expression(newPoint3Vec);
+
+				Expression newPoint4X = Expression(point4x);
+				Expression newPoint4Y = Expression(point4y);
+				std::vector<Expression> newPoint4Vec;
+				newPoint4Vec.push_back(newPoint4X);
+				newPoint4Vec.push_back(newPoint4Y);
+				Expression newPoint4 = Expression(newPoint4Vec);
+
+				//std::cout << newPoint1 << std::endl;
+				//std::cout << newPoint2 << std::endl;
+				//std::cout << newPoint3 << std::endl;
+				//std::cout << newPoint4 << "\n" << std::endl;
+
+
+				Expression newLineLeft = makeLineFromPoints(newPoint1, newPoint2, xscale, yscale);
+
+				Expression newLineMiddle = makeLineFromPoints(newPoint2, newPoint3, xscale, yscale);
+
+				Expression newLineRight = makeLineFromPoints(newPoint3, newPoint4, xscale, yscale);
+
+				//std::cout << "New lines!" << std::endl;
+				//std::cout << "line 1: " << newLineLeft << std::endl;
+				//std::cout << "line 2: " << newLineMiddle << std::endl;
+				//std::cout << "line 3: " << newLineRight << "\n" << std::endl;
+
+				ret.erase(ret.begin() + z);
+				ret.erase(ret.begin() + z);
+				ret.insert(ret.begin() + z, newLineLeft);
+				ret.insert(ret.begin() + z + 1, newLineMiddle);
+				ret.insert(ret.begin() + z + 2, newLineRight);
 			}
 			
 

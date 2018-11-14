@@ -63,6 +63,8 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 }
 
 void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
+	//static int count = 0;
+
 	if (clearFlag) clear();
 
 	int thickness = exp.getProperty("\"thickness\"").getHead().asNumber();
@@ -87,6 +89,9 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 		qgv->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 		qgv->fitInView(qgs->itemsBoundingRect(), Qt::KeepAspectRatio);
+
+		//count++;
+		//qDebug() << "Count is now: " << count;
 
 		/*qDebug() << "Adding line";
 		qDebug() << "Line has first point of " << x1 << "," << y1;
