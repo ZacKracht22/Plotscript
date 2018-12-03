@@ -2,10 +2,13 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 #include "interpreter.hpp"
 #include "semantic_error.hpp"
 #include "startup_config.hpp"
+#include "ThreadSafeQueue.hpp"
+#include "worker.hpp"
 
 void prompt(){
   std::cout << "\nplotscript> ";
@@ -68,37 +71,35 @@ int eval_from_command(std::string argexp, Interpreter& interp){
 }
 
 // A REPL is a repeated read-eval-print loop
-void repl(){
-  Interpreter interp;
-  eval_from_file(STARTUP_FILE, interp);
+void repl(ThreadSafeQueue<std::string>& input_queue, ThreadSafeQueue<std::pair<std::string, Expression>>& output_queue){
+  //Interpreter interp;
+  //eval_from_file(STARTUP_FILE, interp);
+  std::pair<std::string, Expression> ret;
 
-  while(!std::cin.eof()){
+  while(!std::cin.eof()){ //edit this
+	  prompt();
+	  std::string line = readline();
+	  if (line.empty()) continue;
+	  input_queue.push(line);
+	  output_queue.wait_and_pop(ret);
 
-    prompt();
-    std::string line = readline();
-    
-    if(line.empty()) continue;
-
-    std::istringstream expression(line);
-    
-    if(!interp.parseStream(expression)){
-      error("Invalid Expression. Could not parse.");
-    }
-    else{
-      try{
-	Expression exp = interp.evaluate();
-	std::cout << exp << std::endl;
-      }
-      catch(const SemanticError & ex){
-	std::cerr << ex.what() << std::endl;
-      }
-    }
+	  if (ret.first.empty()) { //output expression
+		  std::cout << ret.second << std::endl;
+	  }
+	  else { //output error message
+		  std::cerr << ret.first << std::endl;
+	  }
   }
 }
 
 int main(int argc, char *argv[])
 {  
-	Interpreter interp;
+Interpreter interp;
+ThreadSafeQueue<std::string> input_queue;
+ThreadSafeQueue<std::pair<std::string,Expression>> output_queue;
+Worker main_worker(&input_queue, &output_queue);
+std::thread main_thread(main_worker);
+
   if(argc == 2){
     return eval_from_file(argv[1], interp);
   }
@@ -111,8 +112,10 @@ int main(int argc, char *argv[])
     }
   }
   else{
-      repl();
+      repl(input_queue, output_queue);
   }
     
+  main_thread.join();
+
   return EXIT_SUCCESS;
 }
