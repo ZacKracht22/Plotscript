@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QLayout>
+#include <QPushButton>
 #include <fstream>
 #include <thread>
 
@@ -28,11 +29,15 @@ public:
 
 public slots:
 	void NewInterpret();
+	void start_signal();
+	void stop_signal();
+	void reset_signal();
+	void interrupt_signal();
 
 private:
 	InputWidget* input;
 	OutputWidget* output;
-	
+	QWidget* buttons;
 };
 
 #endif
