@@ -36,7 +36,7 @@ public:
 		while (true) { //edit this
 			std::string line;
 			m_queue_in->wait_and_pop(line);
-
+			if (line == "die") break;
 			std::istringstream expression(line);
 
 			std::pair<std::string, Expression> returnPair;

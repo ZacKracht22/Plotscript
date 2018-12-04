@@ -914,7 +914,7 @@ void recursiveLineSplitAlgorithm(std::vector<Expression>& ret, double xscale, do
 	if (abs(angle) < 90) {
 		angle = 180 - abs(angle);
 	}
-	std::cout << "angle: " << angle << std::endl;
+	
 	if (angle < 175) {
 		//Calculate 3 new lines
 		Expression newPoint1X = Expression(point1x);
@@ -1026,8 +1026,7 @@ Expression continuous_plot(const std::vector<Expression> & args, Environment & e
 			recursiveLineSplitAlgorithm(ret, xscale, yscale, z);
 		}
 	}
-	for (auto a : ret)
-		std::cout << "item: " << a << std::endl;
+		
 
 	//Make graph's border points
 	makeGraphBorder(ret, x_min, x_max, y_min, y_max, xscale, yscale);

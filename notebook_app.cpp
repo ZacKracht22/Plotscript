@@ -2,6 +2,8 @@
 #include "expression.hpp"
 #include "semantic_error.hpp"
 #include "startup_config.hpp"
+#include "ThreadSafeQueue.hpp"
+#include "worker.hpp"
 
 #include <QDebug>
 #include <QString>
@@ -9,10 +11,13 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 NotebookApp::NotebookApp() {
 	input = new InputWidget();
 	output = new OutputWidget();
+	Worker main_worker(&input_queue, &output_queue);
+	main_thread = std::thread(main_worker);
 
 	QObject::connect(input, SIGNAL(shiftEnter()), this, SLOT(NewInterpret()));
 
@@ -20,8 +25,11 @@ NotebookApp::NotebookApp() {
 	layout->addWidget(input);
 	layout->addWidget(output);
 	setLayout(layout);
+}
 
-	eval_from_file(STARTUP_FILE);
+NotebookApp::~NotebookApp() {
+	input_queue.push("die");
+	main_thread.join();
 }
 
 void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
@@ -50,82 +58,44 @@ void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 }
 
 void NotebookApp::NewInterpret() {
-
+		std::pair<std::string, Expression> ret;
 		std::string inString = input->toPlainText().toStdString();
-		std::istringstream expression(inString);
 
-		if (!m_interp.parseStream(expression)) {
-			error("Invalid Expression. Could not parse.");
+		input_queue.push(inString);
+		output_queue.wait_and_pop(ret);
+
+		if (ret.first.empty()) { //output expression
+			Expression exp = ret.second;
+			std::string evalExp = "";
+
+			if (exp.getProperty("\"object-name\"") == Expression(Atom("\"point\""))) {
+				output->outputPoint(exp, true);
+			}
+			else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"line\""))) {
+				output->outputLine(exp, true);
+			}
+			else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
+				output->outputText(exp, true);
+			}
+			else if (exp.head().asSymbol() == "list") {
+				output->clear();
+				std::vector<Expression> list = exp.getTail();
+				recursiveListInterpret(list);
+			}
+			else if (!exp.isHeadLambda()) {
+				evalExp = expString(exp);
+				output->outputExpression(QString::fromStdString(evalExp));
+			}
+			else {
+				output->clear();
+			}
 		}
-		else {
-			try {
-				Expression exp = m_interp.evaluate();
+		else { //output error message
+			std::string errorMessage = ret.first;
+			output->outputExpression(QString::fromStdString(errorMessage));
+		}
 
-				std::string evalExp = "";
-
-				if (exp.getProperty("\"object-name\"") == Expression(Atom("\"point\""))) {
-					output->outputPoint(exp, true);
-				}
-				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"line\""))) {
-					output->outputLine(exp, true);
-				}
-				else if (exp.getProperty("\"object-name\"") == Expression(Atom("\"text\""))) {
-					output->outputText(exp, true);
-				}
-				else if (exp.head().asSymbol() == "list") {
-					output->clear();
-					std::vector<Expression> list = exp.getTail();
-					recursiveListInterpret(list);
-				}
-				else if (!exp.isHeadLambda()) {
-					evalExp = expString(exp);
-					output->outputExpression(QString::fromStdString(evalExp));
-				}
-				else {
-					output->clear();
-				}
 				
-
-			}
-			catch (const SemanticError & ex) {
-				output->outputExpression(QString::fromStdString(ex.what()));
-			}
-		}
+		
 }
 
-int NotebookApp::eval_from_file(std::string filename) {
-
-	std::ifstream ifs(filename);
-
-	if (!ifs) {
-		error("Could not open file for reading.");
-		return EXIT_FAILURE;
-	}
-
-	return eval_from_stream(ifs);
-}
-
-int NotebookApp::eval_from_stream(std::istream & stream) {
-
-	if (!m_interp.parseStream(stream)) {
-		error("Invalid Program. Could not parse.");
-		return EXIT_FAILURE;
-	}
-	else {
-		try {
-			Expression exp = m_interp.evaluate();
-		}
-		catch (const SemanticError & ex) {
-			output->outputExpression(QString::fromStdString(ex.what()));
-			return EXIT_FAILURE;
-		}
-	}
-
-	return EXIT_SUCCESS;
-}
-
-void NotebookApp::error(const std::string & err_str) {
-	std::string error = "Error: " + err_str;
-	output->outputExpression(QString::fromStdString(error));
-
-}
