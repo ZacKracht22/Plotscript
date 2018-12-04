@@ -38,6 +38,7 @@ private:
 	InputWidget* input;
 	OutputWidget* output;
 	QWidget* buttons;
+	//bool enable;
 };
 
 #endif

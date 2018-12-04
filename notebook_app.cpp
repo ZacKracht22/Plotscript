@@ -17,9 +17,13 @@ NotebookApp::NotebookApp() {
 	input = new InputWidget();
 	output = new OutputWidget();
 	QPushButton* start = new QPushButton("Start Kernel");
+	start->setObjectName("start");
 	QPushButton* stop = new QPushButton("Stop Kernel");
+	stop->setObjectName("stop");
 	QPushButton* reset = new QPushButton("Reset Kernel");
+	reset->setObjectName("reset");
 	QPushButton* interrupt = new QPushButton("Interrupt");
+	interrupt->setObjectName("interrupt");
 
 	Worker main_worker(&input_queue, &output_queue);
 	main_thread = std::thread(main_worker);
@@ -85,8 +89,10 @@ void NotebookApp::NewInterpret() {
 			std::pair<std::string, Expression> ret;
 			std::string inString = input->toPlainText().toStdString();
 
+			input->setDisabled(true);
 			input_queue.push(inString);
 			output_queue.wait_and_pop(ret);
+			input->setDisabled(false);
 
 			if (ret.first.empty()) { //output expression
 				Expression exp = ret.second;
