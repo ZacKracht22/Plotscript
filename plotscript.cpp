@@ -82,7 +82,12 @@ void repl(ThreadSafeQueue<std::string>& input_queue, ThreadSafeQueue<std::pair<s
 	  prompt();
 	  std::string line = readline();
 
-	  if (line == "%start" && !main_thread.joinable()) {
+
+	  if (line == "%exit") {
+		  input_queue.push("die");
+		  break;
+	  }
+	  else if (line == "%start" && !main_thread.joinable()) {
 		  Worker new_worker(&input_queue, &output_queue);
 		  main_thread = std::thread(new_worker);
 	  }
