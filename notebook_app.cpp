@@ -79,7 +79,7 @@ void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 
 void NotebookApp::NewInterpret() {
 		if (!main_thread.joinable()) {
-			std::cerr << "Error: interpreter kernel not running" << std::endl;
+			output->outputExpression(QString::fromStdString("Error: interpreter kernel not running"));
 		}
 		else {
 			std::pair<std::string, Expression> ret;
