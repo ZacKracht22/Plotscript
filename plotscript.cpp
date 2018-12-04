@@ -10,6 +10,8 @@
 #include "ThreadSafeQueue.hpp"
 #include "worker.hpp"
 
+std::thread main_thread; //Global thread
+
 void prompt(){
   std::cout << "\nplotscript> ";
 }
@@ -79,15 +81,41 @@ void repl(ThreadSafeQueue<std::string>& input_queue, ThreadSafeQueue<std::pair<s
   while(!std::cin.eof()){ //edit this
 	  prompt();
 	  std::string line = readline();
-	  if (line.empty()) continue;
-	  input_queue.push(line);
-	  output_queue.wait_and_pop(ret);
 
-	  if (ret.first.empty()) { //output expression
-		  std::cout << ret.second << std::endl;
+	  if (line == "%start" && !main_thread.joinable()) {
+		  Worker new_worker(&input_queue, &output_queue);
+		  main_thread = std::thread(new_worker);
 	  }
-	  else { //output error message
-		  std::cerr << ret.first << std::endl;
+	  else if (line == "%stop" && main_thread.joinable()) {
+		  input_queue.push("die");
+		  main_thread.join();
+	  }
+	  else if (line == "%reset" && main_thread.joinable()) {
+		  input_queue.push("die");
+		  main_thread.join();
+		  Worker new_worker(&input_queue, &output_queue);
+		  main_thread = std::thread(new_worker);
+	  }
+	  else if (line == "%reset" && !main_thread.joinable()) {
+		  Worker new_worker(&input_queue, &output_queue);
+		  main_thread = std::thread(new_worker);
+	  }
+	  else if (!main_thread.joinable()) {
+		  std::cerr << "Error: interpreter kernel not running" << std::endl;
+	  }
+	  else if (line.empty()) continue;
+	  else {
+
+		  input_queue.push(line);
+		  output_queue.wait_and_pop(ret);
+
+		  if (ret.first.empty()) { //output expression
+			  std::cout << ret.second << std::endl;
+		  }
+		  else { //output error message
+			  std::cerr << ret.first << std::endl;
+		  }
+
 	  }
   }
 }
@@ -98,7 +126,7 @@ Interpreter interp;
 ThreadSafeQueue<std::string> input_queue;
 ThreadSafeQueue<std::pair<std::string,Expression>> output_queue;
 Worker main_worker(&input_queue, &output_queue);
-std::thread main_thread(main_worker);
+main_thread = std::thread(main_worker);
 
   if(argc == 2){
     return eval_from_file(argv[1], interp);

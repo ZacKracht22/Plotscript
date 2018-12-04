@@ -20,9 +20,6 @@ Q_OBJECT
 public:
 	NotebookApp();
 	~NotebookApp();
-	int eval_from_stream(std::istream & stream);
-	int eval_from_file(std::string filename);
-	void error(const std::string & err_str);
 	void recursiveListInterpret(std::vector<Expression>& list);
 
 	ThreadSafeQueue<std::string> input_queue;
