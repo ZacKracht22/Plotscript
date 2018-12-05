@@ -7,6 +7,7 @@
 #include "environment.hpp"
 #include "semantic_error.hpp"
 
+
 Expression::Expression(){}
 
 Expression::Expression(const Atom & a){

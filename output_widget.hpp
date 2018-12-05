@@ -10,6 +10,8 @@ class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsTextItem;
 
+//Output Widget is a class that shows a QGraphicsView and QGraphicsScene containing the result
+//of a plotscript command. It uses composition to show its members.
 class OutputWidget: public QWidget{
 Q_OBJECT
 
@@ -23,6 +25,7 @@ public:
 	void clear();
 	QGraphicsTextItem* getTextItem();
 
+	//Include NotebookTest as a friend class for testing purposes
 	friend class NotebookTest;
 
 private:

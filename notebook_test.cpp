@@ -8,6 +8,7 @@
 #include "input_widget.hpp"
 #include "output_widget.hpp"
 
+//Notebook testing class using QTest framework
 class NotebookTest : public QObject {
   Q_OBJECT
 
@@ -30,6 +31,7 @@ private slots:
   void Milestone3Task1();
   void testDiscretePlotLayout();
   void testContinuousPlotLayout();
+  void startStopKernelTest();
 
 private:
 
@@ -527,10 +529,43 @@ void NotebookTest::testContinuousPlotLayout() {
 
 }
 
+void NotebookTest::startStopKernelTest() {
+	//Add a string to the input widget to be evaluated
+	QString testInput = "(+ 1 2)";
+	inputWidget->insertPlainText(testInput);
 
+	//Find stop kernel button
+	QPushButton* stop = test_app.findChild<QPushButton*>("stop");
+	QVERIFY2(stop, "Could not find stop button");
 
+	//Find start kernel button
+	QPushButton* start = test_app.findChild<QPushButton*>("start");
+	QVERIFY2(start, "Could not find start button");
 
+	//Click the Stop Kernel button to stop the kernel
+	QTest::mouseClick(stop, Qt::LeftButton);
 
+	//Hit shift-enter to attempt to evaluate expression
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier);
+
+	//Since the kernel is stopped, the output should read "Error: interpreter kernel not running"
+	QGraphicsTextItem* textItem = outputWidget->getTextItem();
+	QVERIFY2(textItem, "Could not find text item");
+	QString output = textItem->toPlainText();
+	QVERIFY(output == "Error: interpreter kernel not running");
+
+	//Click Start Kernel to start the kernel back up again
+	QTest::mouseClick(start, Qt::LeftButton);
+
+	//Hit shift-enter to attempt to evaluate expression again
+	QTest::keyClick(inputWidget, Qt::Key_Enter, Qt::ShiftModifier);
+
+	//Since the kernel is running again, it should evaluate the expression this time, reading "(3)"
+	QGraphicsTextItem* textItem2 = outputWidget->getTextItem();
+	QVERIFY2(textItem2, "Could not find text item");
+	QString output2 = textItem2->toPlainText();
+	QVERIFY(output2 == "(3)");
+}
 
 
 

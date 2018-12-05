@@ -5,6 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 
+//Message queue class that is safe for use in threads. Used in the project as an input queue and an output queue
+//for the producer/consumer pattern.
 template<typename T>
 class ThreadSafeQueue
 {

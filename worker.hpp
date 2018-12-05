@@ -13,11 +13,12 @@
 #include <fstream>
 #include <thread>
 
-
+//Worker class for the producer/consumer structure of handling the programs threads
 class Worker
 {
 public:
 
+	//And instance takes in q1 as the input queue and q2 as the output queue
 	Worker(ThreadSafeQueue<std::string> *q1, ThreadSafeQueue<std::pair<std::string,Expression>> *q2)
 	{
 		m_queue_in = q1;
@@ -33,30 +34,30 @@ public:
 		interp.parseStream(ifs);
 		Expression temp = interp.evaluate();
 
-		while (true) { //edit this
+		//While the worker is active
+		while (true) {
 			std::string line;
-			m_queue_in->wait_and_pop(line);
-			if (line == "die") break;
+			m_queue_in->wait_and_pop(line); //Wait for an input from the message queue and pop it as a string to parse
+			if (line == "die") break; //Die is a keyword to kill the kernel and break the loop
 			std::istringstream expression(line);
 
 			std::pair<std::string, Expression> returnPair;
 
 			if (!interp.parseStream(expression)) {
 				returnPair.first = "Error: Invalid Expression. Could not parse.";
-				//std::cerr << "Error: Invalid Expression. Could not parse." << std::endl;
 			}
 			else {
 				try {
+					//If a successful parse with no semantic errors, make the output string blank and set the output expression to the evaluation
 					returnPair.first = "";
 					returnPair.second = interp.evaluate();
-					//Expression exp = interp.evaluate();
-					//std::cout << exp << std::endl;
 				}
 				catch (const SemanticError & ex) {
+					//If an error gets thrown, send it through the output string
 					returnPair.first = ex.what();
-					//std::cerr << ex.what() << std::endl;
 				}
 			}
+			//Push the evaluation to the output message queue
 			m_queue_out->push(returnPair);
 		}
 	}

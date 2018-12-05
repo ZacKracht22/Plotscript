@@ -32,7 +32,7 @@ public:
   ///Constructor for creating list type
   Expression(const std::vector<Expression> & args);
 
-  ///Constructor for creating lambda function
+  ///Constructor for creating lambda function from two Expressions, the arguments and the function
   Expression(const Expression & tail0, const Expression & tail1);
 
   /*! Construct an Expression with given Atom as head an empty tail

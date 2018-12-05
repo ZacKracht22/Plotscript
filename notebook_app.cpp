@@ -14,6 +14,7 @@
 #include <thread>
 
 NotebookApp::NotebookApp() {
+	//Instantiate the widgets used on the notebook app
 	input = new InputWidget();
 	output = new OutputWidget();
 	QPushButton* start = new QPushButton("Start Kernel");
@@ -25,6 +26,7 @@ NotebookApp::NotebookApp() {
 	QPushButton* interrupt = new QPushButton("Interrupt");
 	interrupt->setObjectName("interrupt");
 
+	//Create a worker and thread
 	Worker main_worker(&input_queue, &output_queue);
 	main_thread = std::thread(main_worker);
 
@@ -52,10 +54,12 @@ NotebookApp::NotebookApp() {
 }
 
 NotebookApp::~NotebookApp() {
+	//Send the key word to end the worker's while(true) loop when the program is exited
 	input_queue.push("die");
 	main_thread.join();
 }
 
+//Interprets each item in a list and outputs them one at a time. 
 void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 	if (list.size() == 0) {
 		return;
@@ -81,6 +85,8 @@ void NotebookApp::recursiveListInterpret(std::vector<Expression>& list) {
 	recursiveListInterpret(list);
 }
 
+//Slot that gets called when shift enter is pressed. It parses the input string from the input box if the thread is active,
+//outputs an error if the thread is not active.
 void NotebookApp::NewInterpret() {
 		if (!main_thread.joinable()) {
 			output->outputExpression(QString::fromStdString("Error: interpreter kernel not running"));
@@ -129,24 +135,23 @@ void NotebookApp::NewInterpret() {
 		
 }
 
+//Slot gets called when the Start Kernel button is pressed. This starts a new thread if the current one is inactive.
 void NotebookApp::start_signal() {
 	if (!main_thread.joinable()) {
 		Worker new_worker(&input_queue, &output_queue);
 		main_thread = std::thread(new_worker);
 	}
-	
 }
 
+//Slot gets called when the Stop Kernel button is pressed. Kills the thread if it is active.
 void NotebookApp::stop_signal() {
-
 	if (main_thread.joinable()) {
 		input_queue.push("die");
 		main_thread.join();
 	}
-
-	
 }
 
+//Slot gets called when the Reset Kernel button is pressed. 
 void NotebookApp::reset_signal() {
 
 	if (main_thread.joinable()) {

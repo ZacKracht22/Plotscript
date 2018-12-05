@@ -21,10 +21,13 @@ needed.
 \brief A Procedure is a C++ function pointer taking a vector of 
        Expressions as arguments and returning an Expression.
 */
+//Procedure is a built in plotscript functin type requiring a const reference to a vector of Expressions to evaluate
 typedef Expression (*Procedure)(const std::vector<Expression> & args);
 
+//Procedure_prop is a plot-type built in procedure where the arguments are not-const in order to edit their values
 typedef Expression(*Procedure_prop)(std::vector<Expression> & args);
 
+//Procedure_bi is a plotscript function that requires access to the environment
 typedef Expression (*Procedure_bi)(const std::vector<Expression> & args, Environment & env);
 
 /*! \class Environment

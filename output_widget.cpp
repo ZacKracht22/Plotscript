@@ -35,9 +35,12 @@ void OutputWidget::outputExpression(QString input) {
 	qgs->addItem(qgti);
 }
 
+//When a point is needing to be drawn on the scene this function gets called.
+//param clearFlag indicates whether the scene needs to be cleared first.
 void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 	if(clearFlag) clear();
 
+	//Get the parameters from the make-point expression
 	qreal width = exp.getProperty("\"size\"").head().asNumber();
 	qreal height = width;
 	qreal x = exp.getTail().at(0).head().asNumber();
@@ -45,6 +48,7 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 	qreal y = exp.getTail().at(1).head().asNumber();
 	y = y - (width / 2);
 
+	//Error if the point's width is negative
 	if (width < 0) {
 		outputExpression(QString::fromStdString("Error: point size cannot be negative"));
 	}
@@ -62,6 +66,8 @@ void OutputWidget::outputPoint(Expression& exp, bool clearFlag) {
 	}
 }
 
+//When a line is needing to be drawn on the scene this function gets called.
+//param clearFlag indicates whether the scene needs to be cleared first.
 void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 	if (clearFlag) clear();
 
@@ -91,7 +97,8 @@ void OutputWidget::outputLine(Expression& exp, bool clearFlag) {
 
 }
 
-
+//When any text is needing to be drawn on the scene this function gets called.
+//param clearFlag indicates whether the scene needs to be cleared first.
 void OutputWidget::outputText(Expression& exp, bool clearFlag) {
 	if(clearFlag) clear();
 
