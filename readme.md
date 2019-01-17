@@ -1,24 +1,10 @@
 Introduction
 -------------
 
-The starter code for the semester project implements the basic language interpreter for a language we will call Plot Script (plotscript) in less than 700 lines of code. It also includes unit and integration tests for the base implementation, as well as a driver program implementing a read-eval-print loop. These pages define the base language and document its implementation. **You will need to read and understand this code in order to be able to modify it.**
+Plotscript is a semester long software project for ECE 3574 written in C++. The starter code for the project implements the basic language interpreter for a language we will call Plot Script (plotscript) and uses a TUI to evaluate basic math functions such as addition, subtraction, and multiplication. Throughout the semester there were 5 milestones where I was asked to implement new functionality and expand on present functionality of the starter code.
 
 Plot Script Overview
 ---------------------
-
-A C++ program is a collection of statements, many of which contains expressions -- sequence of characters that when evaluated give a value. For example in the following code, consisting of a single C++ statement,
-
-```
-double x = ((1.0 + 2.0)*3.0)/4.0;
-```
-
-the statement allocates a stack variable named ``x`` of type ``double`` and assigns its value to the result of the expression ``((1.0 + 2.0)*3.0)/4.0``. 
-
-The syntax of a programming language is the rules that govern when a string of characters represents a valid sequence in the language. Related, semantics is the meaning of the sequence computationally, i.e the result it produces. Some languages have a complicated syntax -- C++ notoriously so. Others are simple but no less powerful for expressing computations. 
-
-For example the syntax of most Lisp-family languages, like [scheme](http://www.schemers.org/), consist solely of expressions. This makes their syntax less complicated. Lisp uses prefix notation to represent an expression. Prefix notation puts the operator first. For example the prefix notation of the expression above is ``(/  (* (+ 1 2) 3) 4)``. In general the syntax is ``(PROC ARG1 ARG2 ... ARGN)``, where ``PROC`` is a _procedure_ with _arguments_ ``ARG1``, ``ARG2``, etc., and each argument can also be an expression. 
-
-Simple syntax makes languages much easier to learn, since there is less to remember, and easier to program in. This makes lisp/scheme syntax a good candidate for _scripting_ _languages_, programs written to extend the run-time capabilities of larger programs. Scripting languages are generally interpreted rather than compiled. An interpreter reads the source code and computes it's result and side effects, without converting (compiling) to machine code [1]. Interpreters then are programs that read programs and produce output. They can usually be invoked a few different ways, for example reading the program to be interpreted from a file or interactively with user input. The latter is called a Read-Eval-Print-Loop or REPL.
 
 Plot Script uses a prefix Lisp notation (also called [s-expressions](https://en.wikipedia.org/wiki/S-expression)). A plotscript program then is just one, possibly very complex, expression. For example the following program is roughly equivalent to the C++ one above.
 
@@ -64,7 +50,7 @@ This can be implemented as a finite state machine operating on the input stream 
 
 The process of AST construction then uses the token list to build the AST. Every time a ``(`` token is encountered a new node in the AST is created using the following token in the list. Its children are then constructed recursively in the same fashion. This is called a recursive descent parser since it builds the AST top-down in a recursive fashion. The provided parser is an iterative version of this algorithm (see the parse function).
 
-Initial Plot Script Language Specification
+Initial Plot Script Language Specification (starter code)
 --------------------------------------------
 
 Our initial plotscript language is relatively simple (you will be extending it during the course of the semester). It can be specified as follows.
@@ -108,10 +94,27 @@ Our language also supports comments using the traditional lisp notation. Any con
 
 See the directory ``tests`` in the repository an example plotscript program demonstrating the above syntax.
 
+Milestones
+--------
+
+Miletone 0: In this milestone I added new built in math functions for the plotscript program including Euler's number, square root, exponents, natural log, sin, cos, and tan. I also added functionality for complex numbers in the new and existing functions.
+
+Miletone 1: The first step in this milestone was to implement list functioanlity in the program. The existing code had to be manipulated to evaluate new list functions and existing functions with lists as inputs. New built in functions were added to both apply built in functions onto a list and use a list as an input to built in functions. After completing this, I edited the program to allow for user-defined procedures called lambda functions. This allows the user to define their own functions and then evaluate them in the TUI. This required substantial reconstruction of the environment and expression modules.
+
+Miletone 2: This milestone began the process of adding graphing primitives that would then become useful upon building the GUI. I first added a map to each expression where a property value could be set. Then I created a start up file with pre-defined functions called make-text, make-line, and make-point with the necessary default properties that they would have upon starting the program.
+
+Miletone 3: This milestone implemented the GUI for the program. The GUI has an input widget that inherits from QT's QPlainTextEdit module to create a textbox for inputting a plotscript expression. It also has an output widget that uses composition to create a graphics scene that can display text and shapes. The GUI can be used to evaluate regular plotscript expressions or create graphs from lambda functions.
+
+Miletone 4: This milestone began by creating a thread safe queue that would take in plotscript inputs and evaluate them one at a time. This was implemented in both the TUI and GUI to create separate kernels for each. In the TUI, the commands %start, %stop, and %reset were added to start, stop, and reset the kernel. This functionality was added to the top of the GUI using push buttons.
+
+*Note unit tests were written during each module to keep up to date confimation of correct functionality
+
 Modules
 --------
 
 The C++ code implementing the plotscript interpreter is divided into the following modules, consisting of a header and implementation pair (.hpp and .cpp). See the associated linked pages for details.
+
+From the starter code:
 
 * Atom Module (``atom.hpp``, ``atom.cpp``): This module defines the variant type used to hold Atoms.
 * Expression Module (``expression.hpp``, ``expression.cpp``): This module defines a class named ``Expression``, forming a node in the AST.
@@ -120,106 +123,10 @@ The C++ code implementing the plotscript interpreter is divided into the followi
 * Environment Module (``environment.hpp``, ``environment.cpp``): This module defines the C++ types and code that implements the plotscript environment mapping.
 * Interpreter Module (``interpreter.hpp``, ``interpreter.cpp``):  This module implements a class named "Interpreter`` for parsing and evaluation of the AST representation of the expression.
 	
-Driver Program Specification
------------------------------------
+Added throughout the milestones:
 
-The interpreter module needs some user interface code to be useful to a user. The starter code includes a command-line application that compiles to an executable named ``plotscript.exe`` on Windows and just ``plotscript`` on mac/linux. The executable is usable in one of three ways:
-
-To execute short simple programs, pass a flag ``-e`` followed by a quoted string with the program. For example (> is the prompt):
-
-```
-> plotscript -e "(+ 1 (- 3) 12)"
-```
-
-This evaluates the program in the string and prints the result in the format below or produces an appropriate error message, beginning with "Error", if the program cannot be parsed or encounters a semantic error. If an error occurs plotscript returns ``EXIT_FAILURE`` from main, otherwise it returns ``EXIT_SUCCESS``.
-
-To execute programs stored in external files, provide the file-name containing the plotscript program as a command-line argument. For example, assuming a file named ``mycode.pls`` is in the current working directory with the executable:
-
-```
-> plotscript mycode.pls
-```
-
-This evaluates the program in the file and prints the result in the format below or produces an appropriate error message, beginning with "Error", if the program cannot be parsed or encounters a semantic error. If an error occurs plotscript returns ``EXIT_FAILURE`` from main, otherwise it returns ``EXIT_SUCCESS``.
-
-For interactive execution of programs using a REPL, just type the executable name:
-
-```
-> plotscript
-```
-
-This prints a prompt ``plotscript> `` to standard output and waits for the user to type an expression on standard input. It then evaluates the provided expression and prints the result in the format below, or prints an error message, beginning with "Error", if the line cannot be parsed or encounters a semantic error during evaluation. If a semantic error is encountered during evaluation the environment is _not_ reset to the default state (i.e. it retains any defines encountered before the error). After printing the result the REPL prompts again. This continues until the user types the EOF character (Control-k on Windows and Control-d on unix). Changes to the environment are persistent during the use of the REPL. If the user provides an empty line at the REPL (just types Enter) it just ignore the input and prompts again.
-
-**Output Format**: Expressions returned from the interpreter evaluation are printed as ``(<atom>)``. Errors are printed on a single line as the string "Error: " followed by an error message describing the error.
-
-Example transcripts of use:
-
-Executing a simple example at the command line:
-
-```
-> plotscript -e "(* 2 3)"
-(6)
-```
-Execute the program in a file (showing it first using cat):
-
-```
-> cat program.pls
-; define and add two numbers
-(begin
-  (define a 1)
-  (define b 2)
-  (+ b a)
-)
-> plotscript program.pls
-(3)
-```
-
-Execute some expressions in the REPL:
-
-```
-> plotscript
-plotscript> (define a 12)
-(12)
-plotscript> (define b 10)
-(10)
-plotscript> (- a b c)
-Error: unknown symbol
-plotscript> (- a b)
-(2)
-plotscript> (- 12 10)
-(2)
-```
-
-Unit Tests
--------------
-
-Each module of code above has a set of unit tests covering its functionality using Catch, e.g. basic tests for the interpreter module are included in the file ``interpreter_tests.cpp``. These tests are built as part of the overall project using CMake as described below. These are examples of the kind of tests you will be writing during the semester.
-
-Using CMake to build and test the software
---------------------------------------------
-
-The repository contains a ``CMakeLists.txt`` file that sets up the tests and builds the plotscript executable. 
-
-In the virtual machine this translates to the following:
-
-```
-> cd ~
-> cmake /vagrant
-> make
-> make test
-```
-
-This treats the source directory as the shared host directory (``/vagrant``) and places the build in the home directory of the virtual machine user (``/home/vagrant``). Using CMake on your host system will vary slightly by platform and compiler/IDE.
-
-The reference environment also includes tools for memory and coverage analysis. To run them (after doing the above):
-
-```
-> make memtest
-> make coverage
-```
-
-We will discuss these tools in class.
-
-Notes
-------
-
-[1]: This distinction is not always clear, many interpreters do compile to machine code or to a virtual machine. These are called just-in-time or JITing interpreters.
+* Input Widget Module (``input_widget.hpp``, ``input_widget.cpp``): This module uses the QT framework to create a textbox where the user can input a plotscript expression.
+* Output Widget Module (``output_widget.hpp``, ``output_Widget.cpp``): This module uses the QT framework to create a graphics scene that can display text for the result of an expression or error, or graphs for the added graphing functions.
+* Notebook App Module (``notebook_app.hpp``, ``notebook_app.cpp``): This module uses the input widget and output widget, plus 3 buttons for kernel activity to create the GUI for the program.
+* Thread Safe Queue Module (``ThreadSafeQueue.cpp``): This module defines a thread safe queue class to allow for concurrency in the program using threads.
+	
